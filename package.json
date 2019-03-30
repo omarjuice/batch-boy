@@ -1,0 +1,20 @@
+{
+  "name": "batch",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha -w -r ts-node/register index.test.ts",
+    "test:watch": "npm run test -- --watch-extensions ts --watch"
+  },
+  "author": "Omar Juice",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/expect": "^1.20.4",
+    "@types/mocha": "^5.2.6",
+    "expect": "^24.5.0",
+    "mocha": "^6.0.2",
+    "ts-node": "^8.0.3",
+    "typescript": "^3.4.1"
+  }
+}
