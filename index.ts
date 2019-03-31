@@ -1,4 +1,5 @@
-import { BatchingFunction, Load } from "./types";
+import { BatchingFunction } from "./types";
+import Deferred from './Deferred';
 
 export default class Batch {
     func: BatchingFunction
@@ -13,14 +14,8 @@ export default class Batch {
     }
     load(key: any): Promise<any> {
         this.addToQueue(key)
-        let res: any, rej: any;
-        this.values[key] = new Promise((resolve, reject) => {
-            res = resolve
-            rej = reject
-        })
-        this.values[key].resolve = res;
-        this.values[key].reject = rej
-        return this.values[key]
+        this.values[key] = new Deferred()
+        return this.values[key].promise
     }
     addToQueue(key) {
         this.queue.push(key)

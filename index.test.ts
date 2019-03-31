@@ -1,6 +1,7 @@
 import * as expect from 'expect'
 import Batch from './index'
 import { Resolution, MockAsync } from './types'
+import MockDB from './mockDB';
 
 
 const mockAsync: MockAsync = (keys, time = 500) => {
@@ -14,6 +15,7 @@ const mockAsync: MockAsync = (keys, time = 500) => {
     })
 }
 
+
 describe('Testing function', () => {
     it('Should return a promise', () => {
         expect(mockAsync([1, 2, 3, 4, 5])).toBeInstanceOf(Promise)
@@ -26,7 +28,7 @@ describe('Testing function', () => {
 describe('Batch', () => {
     it('Should batch calls to a function', async () => {
         const batcher = new Batch(keys => mockAsync(keys))
-        const vals = Array(1000).fill('x').map((_, i) => batcher.load(i + 1))
+        const vals = Array(10).fill('x').map((_, i) => batcher.load(i + 1))
         const result = await Promise.all(vals)
         console.log(result);
     })

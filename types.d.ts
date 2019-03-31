@@ -5,3 +5,8 @@ export type Resolution = {
 export type MockAsync = (keys: number[]) => Promise<Resolution[]>
 export type BatchingFunction = (keys: any[]) => Promise<any[]>
 export type Load = (key: any, time?: number) => Promise<any>
+export interface IDeferred {
+    resolve: (resolution: any) => any
+    reject: (rejection: Error) => any
+    promise: Promise<any>
+}
