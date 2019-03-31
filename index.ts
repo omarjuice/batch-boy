@@ -1,11 +1,10 @@
-import { BatchingFunction } from "./types";
+import { BatchingFunction, Cache, key } from "./types";
 import Deferred from './Deferred';
-import { Cache } from './types';
 export default class Batch {
     private _func: BatchingFunction
     private _cache: Cache
-    private _queue: any[]
-    public prevBatch: any[]
+    private _queue: key[]
+    public prevBatch: key[]
     private _isQueueing: boolean
     constructor(batchingFunc: BatchingFunction) {
         if (typeof batchingFunc !== 'function') {
@@ -17,7 +16,7 @@ export default class Batch {
         this._isQueueing = false
         this.prevBatch = []
     }
-    public load(key: string | number): Promise<any> {
+    public load(key: key): Promise<any> {
         if (!['string', 'number'].includes(typeof key)) {
             throw new TypeError('key must be a string or number.')
         }
@@ -27,7 +26,10 @@ export default class Batch {
         }
         return this._cache[key].promise
     }
-    private _addToQueue(key: string | number) {
+    public loadMany(keys: key[]): Promise<any[]> {
+        return Promise.all(keys.map(key => this.load(key)))
+    }
+    private _addToQueue(key: key) {
         this._queue.push(key)
         if (!this._isQueueing) {
             this._dispatch()
@@ -36,7 +38,7 @@ export default class Batch {
     }
     private _dispatch() {
         process.nextTick(async () => {
-            const keys = [...this._queue]
+            const keys: key[] = [...this._queue]
             this._queue = []
             const values = await this._func(keys).catch(e => {
                 for (let key of keys) {
@@ -62,12 +64,12 @@ export default class Batch {
     public clearCache() {
         this._cache = {}
     }
-    public clearKeys(identifiers: string[] | number[]) {
+    public clearKeys(identifiers: key[]) {
         for (let identifier of identifiers) {
             this._cache[identifier] = undefined
         }
     }
-    public prime(key: string | number, value: any): Promise<any> {
+    public prime(key: key, value: any): Promise<any> {
         this._cache[key] = new Deferred()
         this._cache[key].resolve(value)
         return this._cache[key].promise
