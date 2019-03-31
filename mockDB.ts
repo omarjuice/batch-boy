@@ -1,5 +1,6 @@
 import Deferred from './Deferred';
-import { IDeferred, Resolution } from './types.d';
+import { IDeferred, Resolution, ResolutionGenerator } from './types.d';
+import { genResolution } from './utils';
 
 export default class MockDB {
     private _entries: Resolution[]
@@ -7,14 +8,14 @@ export default class MockDB {
     private _throttle: number
     private _executing: boolean
     private timer: any
-    constructor(numEntries, throttle) {
+    constructor(numEntries: number, throttle: number, resolutionGenerator: ResolutionGenerator, customKeys: any[] = []) {
         this._entries = [];
         this._throttle = throttle
         this._queries = []
         this._executing = false
         this.timer = null
         for (let i = 0; i < numEntries; i++) {
-            this._entries.push({ key: i + 1, resolution: "resolution" + (i + 1) })
+            this._entries.push(resolutionGenerator(customKeys[i] || i + 1))
         }
     }
     public query(keys: any[]): Promise<Resolution[]> {

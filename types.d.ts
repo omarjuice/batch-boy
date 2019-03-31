@@ -1,5 +1,5 @@
 export type Resolution = {
-    key: number
+    key: number | string
     resolution: string
 }
 export type BatchingFunction = (keys: any[]) => Promise<any[]>
@@ -8,3 +8,4 @@ export interface IDeferred {
     reject: (rejection: Error) => any
     promise: Promise<any>
 }
+export type ResolutionGenerator = (key: any) => Resolution
