@@ -4,6 +4,7 @@ import Batch from './index'
 import { Resolution } from './types'
 import MockDB from './mockDB';
 import { genResolution, arrayOfIntegers, timeBuffer } from './utils';
+import { doesNotReject } from 'assert';
 
 
 const Resolution = {
@@ -11,14 +12,15 @@ const Resolution = {
     resolution: expect.any(String)
 }
 
-const batchingFunction = async (keys, db) => {
-    const results = await db.query(keys)
+const batchingFunction = async (keys: any[], db: MockDB, willThrow: boolean = false) => {
+    const results = await db.query(keys, willThrow)
     const resultsMap = results.reduce((acc, item: Resolution) => {
         acc[item.key] = item
         return acc
     }, {})
     return keys.map(key => resultsMap[key])
 }
+
 
 describe('MockDB', () => {
     it('query return a promise', () => {
@@ -147,6 +149,22 @@ describe('Batch utility functions', () => {
             expect(batcher.prevBatch.includes(primeValue.key)).toBe(false)
             expect(spyOnDbExecute.callCount).toBe(1)
         })
+    })
+})
+describe('Error handling', () => {
+    it('rejects errors normally', async () => {
+        const db = new MockDB(10, 100, genResolution)
+        const batcher = new Batch(keys => batchingFunction(keys, db, true))
+        await expect(Promise.all(arrayOfIntegers(3, 6).map(n => batcher.load(n))))
+            .rejects
+            .toThrow(db.error)
+    })
+    it('Throws in try/catch', async () => {
+        const db = new MockDB(10, 100, genResolution)
+        const batcher = new Batch(keys => batchingFunction(keys, db, true))
+        await expect(batcher.load(8))
+            .rejects
+            .toThrow(db.error)
     })
 })
 

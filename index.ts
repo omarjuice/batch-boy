@@ -1,20 +1,26 @@
 import { BatchingFunction } from "./types";
 import Deferred from './Deferred';
-import { IDeferred } from './types';
+import { Cache } from './types';
 export default class Batch {
     private _func: BatchingFunction
-    private _cache: object
+    private _cache: Cache
     private _queue: any[]
     public prevBatch: any[]
     private _isQueueing: boolean
-    constructor(func: BatchingFunction) {
-        this._func = func
+    constructor(batchingFunc: BatchingFunction) {
+        if (typeof batchingFunc !== 'function') {
+            throw new TypeError('batchingFunc must be a function')
+        }
+        this._func = batchingFunc
         this._cache = {}
         this._queue = []
         this._isQueueing = false
         this.prevBatch = []
     }
     public load(key: string | number): Promise<any> {
+        if (!['string', 'number'].includes(typeof key)) {
+            throw new TypeError('key must be a string or number.')
+        }
         if (!this._cache[key]) {
             this._cache[key] = new Deferred()
             this._addToQueue(key)
@@ -32,13 +38,20 @@ export default class Batch {
         process.nextTick(async () => {
             const keys = [...this._queue]
             this._queue = []
-            const values = await this._func(keys)
-            for (let i = 0; i < keys.length; i++) {
-                const key = keys[i]
-                const value = values[i]
-                this._cache[key].resolve(value)
+            const values = await this._func(keys).catch(e => {
+                for (let key of keys) {
+                    this._cache[key].reject(e)
+                }
+                return null
+            })
+            if (values) {
+                for (let i = 0; i < keys.length; i++) {
+                    const key = keys[i]
+                    const value = values[i]
+                    this._cache[key].resolve(value)
+                }
+                this.prevBatch = [...keys]
             }
-            this.prevBatch = [...keys]
             if (this._queue.length) {
                 this._dispatch()
             } else {

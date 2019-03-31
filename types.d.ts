@@ -8,5 +8,8 @@ export interface IDeferred {
     reject: (rejection: Error) => any
     promise: Promise<any>
 }
+export type Cache = {
+    [key: string]: IDeferred
+}
 export type ResolutionGenerator = (key: any) => Resolution
 export type key = string | number
