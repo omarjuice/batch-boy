@@ -31,7 +31,6 @@ export default class MockDB {
         return null
     }
     public _execute() {
-        console.log('EXECUTING')
         this._executing = true
         this.timer = setTimeout(() => {
             this._queries.shift()()
