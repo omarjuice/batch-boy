@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha -w -r ts-node/register index.test.ts",
+    "test": "mocha -w -r ts-node/register index.test.ts --no-timeouts",
     "test:watch": "npm run test -- --watch-extensions ts --watch"
   },
   "author": "Omar Juice",

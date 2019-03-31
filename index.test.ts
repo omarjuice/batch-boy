@@ -1,15 +1,16 @@
 import * as expect from 'expect'
-// import hello from './index'
+import Batch from './index'
 import { Resolution, MockAsync } from './types'
 
 
-const mockAsync: MockAsync = (keys) => {
+const mockAsync: MockAsync = (keys, time = 500) => {
+    console.log(keys)
     return new Promise(resolve => {
         let resolvedArrayOfValues: Resolution[];
         setTimeout(() => {
             resolvedArrayOfValues = keys.map((key: number): Resolution => ({ key, resolution: 'resolution' + key }))
             resolve(resolvedArrayOfValues)
-        }, 500)
+        }, time)
     })
 }
 
@@ -20,6 +21,14 @@ describe('Testing function', () => {
     it('Should mock an async function', async () => {
         const result: Resolution[] = await mockAsync([1, 2, 3, 4, 5])
         expect(result).toEqual([1, 2, 3, 4, 5].map((key: number): Resolution => ({ key, resolution: 'resolution' + key })))
+    })
+})
+describe('Batch', () => {
+    it('Should batch calls to a function', async () => {
+        const batcher = new Batch(keys => mockAsync(keys))
+        const vals = Array(1000).fill('x').map((_, i) => batcher.load(i + 1))
+        const result = await Promise.all(vals)
+        console.log(result);
     })
 })
 
