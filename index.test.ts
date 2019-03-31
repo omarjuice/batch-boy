@@ -3,7 +3,7 @@ import * as sinon from 'sinon'
 import Batch from './index'
 import { Resolution } from './types'
 import MockDB from './mockDB';
-import { genResolution } from './utils';
+import { genResolution, arrayOfIntegers, timeBuffer } from './utils';
 
 
 const Resolution = {
@@ -51,7 +51,22 @@ describe('Batch', () => {
         for (let item of results) {
             expect(item).toMatchObject(Resolution)
         }
+        expect(spyOnDbExecute.callCount).toBe(1)
+    })
+    it('Should be able to perform multiple batches', async () => {
+        const db = new MockDB(10, 100, genResolution)
+        const batcher = new Batch(keys => batchingFunction(keys, db))
+        const spyOnDbExecute = sinon.spy(db, '_execute')
+        const spyOnDispatch = sinon.spy(batcher, '_dispatch')
+        const firstBatch = arrayOfIntegers(1, 4)
+        await Promise.all(firstBatch.map(n => batcher.load(n)))
+        await timeBuffer(100)
+        expect(batcher.prevBatch).toEqual(firstBatch)
+        const secondBatch = arrayOfIntegers(5, 7)
+        await Promise.all(secondBatch.map(n => batcher.load(n)))
+        expect(batcher.prevBatch).toEqual(secondBatch)
         expect(spyOnDbExecute.callCount).toBe(2)
+        expect(spyOnDispatch.callCount).toBe(2)
     })
     it('Should cache subsequent calls for the same key', async () => {
         const db = new MockDB(10, 100, genResolution)
@@ -63,12 +78,14 @@ describe('Batch', () => {
             batcher.load(3),
             batcher.load(4),
         ])
+        await timeBuffer(100)
         const result = await batcher.load(4)
         expect(result).toMatchObject({
             key: 4,
             resolution: 'resolution4'
         })
-        expect(spyOnDbExecute.callCount).toBe(2)
+        expect(spyOnDbExecute.callCount).toBe(1)
+
     })
     it('Should work with string keys', async () => {
         const customKeys = ['oogabooga', 'fufu', 'lame', 'lol']
@@ -79,7 +96,7 @@ describe('Batch', () => {
         for (let item of results) {
             expect(item).toMatchObject(genResolution(item.key))
         }
-        expect(spyOnDbExecute.calledTwice).toBe(true)
+        expect(spyOnDbExecute.calledOnce).toBe(true)
     })
 })
 

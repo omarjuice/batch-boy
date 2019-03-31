@@ -1,6 +1,5 @@
 import Deferred from './Deferred';
 import { IDeferred, Resolution, ResolutionGenerator } from './types.d';
-import { genResolution } from './utils';
 
 export default class MockDB {
     private _entries: Resolution[]
@@ -32,15 +31,16 @@ export default class MockDB {
         return null
     }
     public _execute() {
-        if (this._queries.length) {
-            console.log('EXECUTING')
-            this._executing = true
-            this.timer = setTimeout(() => {
-                this._queries.shift()()
-                this._executing = false
+        console.log('EXECUTING')
+        this._executing = true
+        this.timer = setTimeout(() => {
+            this._queries.shift()()
+            if (this._queries.length) {
                 this._execute()
-            }, this._throttle)
-        }
+            } else {
+                this._executing = false
+            }
+        }, this._throttle)
     }
     public stopExecution() {
         clearTimeout(this.timer)

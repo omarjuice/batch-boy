@@ -1,5 +1,5 @@
 {
-  "name": "batch",
+  "name": "batcher",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",

@@ -9,3 +9,4 @@ export interface IDeferred {
     promise: Promise<any>
 }
 export type ResolutionGenerator = (key: any) => Resolution
+export type key = string | number
