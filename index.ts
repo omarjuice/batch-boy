@@ -14,7 +14,9 @@ export default class Batch {
     }
     load(key: any): Promise<any> {
         this.addToQueue(key)
-        this.values[key] = new Deferred()
+        if (!this.values[key]) {
+            this.values[key] = new Deferred()
+        }
         return this.values[key].promise
     }
     addToQueue(key) {

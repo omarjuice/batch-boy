@@ -6,16 +6,18 @@ export default class MockDB {
     private _queries: any[]
     private _throttle: number
     private _executing: boolean
+    private timer: any
     constructor(numEntries, throttle) {
         this._entries = [];
         this._throttle = throttle
         this._queries = []
         this._executing = false
+        this.timer = null
         for (let i = 0; i < numEntries; i++) {
-            this._entries.push({ key: i + 1, resolution: "resolution" + i + 1 })
+            this._entries.push({ key: i + 1, resolution: "resolution" + (i + 1) })
         }
     }
-    public query(keys) {
+    public query(keys: any[]): Promise<Resolution[]> {
         const deferred: IDeferred = new Deferred();
         this._queries.push(() => deferred.resolve(keys.map(key => this._find(key))))
         if (!this._executing) this._execute();
@@ -28,15 +30,19 @@ export default class MockDB {
         }
         return null
     }
-    private _execute() {
+    public _execute() {
         if (this._queries.length) {
             console.log('EXECUTING')
             this._executing = true
-            setTimeout(() => {
+            this.timer = setTimeout(() => {
                 this._queries.shift()()
                 this._executing = false
                 this._execute()
             }, this._throttle)
         }
+    }
+    public stopExecution() {
+        clearTimeout(this.timer)
+        this._executing = false
     }
 }
