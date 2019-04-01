@@ -27,8 +27,8 @@ describe('MockDB', () => {
         expect(db.query([1])).toBeInstanceOf(Promise)
         db.stopExecution()
     })
-    xit('demonstrates the problem', async () => {
-        const db = new MockDB(100, 500, genResolution)
+    it('demonstrates the problem', async () => {
+        const db = new MockDB(100, 100, genResolution)
         const spyOnDbExecute = sinon.spy(db, '_execute')
         await Promise.all([
             db.query([1]),
@@ -187,4 +187,5 @@ describe('Error handling', () => {
             .toThrow(db.error)
     })
 })
+
 
