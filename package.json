@@ -1,14 +1,21 @@
 {
-  "name": "batcher",
+  "name": "batch-boy",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "A data loading utility for batching and caching asynchronous actions",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
   "scripts": {
-    "test": "mocha -w -r ts-node/register index.test.ts --no-timeouts",
-    "test:watch": "npm run test -- --watch-extensions ts --watch"
+    "test": "mocha -w -r ts-node/register test/index.test.ts --no-timeouts",
+    "test:watch": "npm run test -- --watch-extensions ts --watch",
+    "build": "tsc",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test"
   },
   "author": "Omar Juice",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@types/expect": "^1.20.4",
     "@types/jest": "^24.0.11",
@@ -20,5 +27,12 @@
     "sinon": "^7.3.1",
     "ts-node": "^8.0.3",
     "typescript": "^3.4.1"
-  }
+  },
+  "keywords": [
+    "batch",
+    "cache",
+    "dataloader",
+    "batch-boy"
+  ],
+  "dependencies": {}
 }

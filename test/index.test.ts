@@ -1,7 +1,7 @@
 import * as expect from 'expect'
 import * as sinon from 'sinon'
-import Batch from './index'
-import { Resolution, key } from './types'
+import Batch from '../src/index'
+import { Resolution, key } from '../src/types'
 import MockDB from './mockDB';
 import { genResolution, arrayOfIntegers, timeBuffer } from './utils';
 

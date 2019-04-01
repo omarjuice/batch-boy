@@ -1,5 +1,5 @@
-import Deferred from './Deferred';
-import { IDeferred, Resolution, ResolutionGenerator } from './types.d';
+import Deferred from '../src/Deferred';
+import { IDeferred, Resolution, ResolutionGenerator } from '../src/types';
 
 export default class MockDB {
     private _entries: Resolution[]

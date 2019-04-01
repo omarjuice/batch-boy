@@ -1,5 +1,7 @@
 import { BatchingFunction, Cache, key } from "./types";
 import Deferred from './Deferred';
+
+
 export default class Batch {
     private _func: BatchingFunction
     private _cache: Cache
