@@ -14,10 +14,13 @@ const Resolution = {
 const batchingFunction = async (keys: key[], db: MockDB) => {
     const results = await db.query(keys)
     const resultsMap = results.reduce((acc, item: Resolution) => {
-        acc[item.key] = item
+        if (item) {
+            acc[item.key] = item
+            return acc
+        }
         return acc
     }, {})
-    return keys.map(key => resultsMap[key])
+    return keys.map(key => resultsMap[key] ? resultsMap[key] : null)
 }
 
 
@@ -224,6 +227,12 @@ describe('Error handling', () => {
         await batcher.load(8)
         expect(await batcher.getFromCache(8)).toEqual(genResolution(8))
         expect(spyOnDbExecute.callCount).toBe(2)
+    })
+    it('Can load null values', async () => {
+        const db = new MockDB(10, 100, genResolution)
+        const batcher = new Batch(keys => batchingFunction(keys, db))
+        const result = await batcher.load(11)
+        expect(result).toBe(null)
     })
 })
 describe('Test batch queueing', () => {

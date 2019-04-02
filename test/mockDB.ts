@@ -61,7 +61,7 @@ export default class MockDB {
         clearTimeout(this._timer)
         this._executing = false
     }
-    public throwsException(boolean) {
+    public throwsException(boolean: boolean) {
         this._willThrow = boolean
         return this
     }
