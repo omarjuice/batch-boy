@@ -1,6 +1,10 @@
-import { BatchingFunction, Cache, key } from "./types";
-import Deferred from './Deferred';
+import Deferred, { IDeferred } from './Deferred';
 
+export type Cache = {
+    [key: string]: IDeferred
+}
+export type key = string | number
+export type BatchingFunction = (keys: any[]) => Promise<any[]>
 
 export default class Batch {
     private _func: BatchingFunction
