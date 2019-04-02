@@ -7,6 +7,7 @@ export default class MockDB {
     private _throttle: number
     private _executing: boolean
     private _timer: any
+    private _willThrow: boolean
     public error: Error
     constructor(numEntries: number, throttle: number, resolutionGenerator: ResolutionGenerator, customKeys: any[] = []) {
         this._entries = [];
@@ -14,15 +15,16 @@ export default class MockDB {
         this._queries = []
         this._executing = false
         this._timer = null
+        this._willThrow = false
         this.error = new Error('Something went wrong...')
         for (let i = 0; i < numEntries; i++) {
             this._entries.push(resolutionGenerator(customKeys[i] || i + 1))
         }
     }
-    public query(keys: key[], willThrow: boolean = false): Promise<Resolution[]> {
+    public query(keys: key[]): Promise<Resolution[]> {
         const deferred: IDeferred = new Deferred();
         this._queries.push(() => {
-            if (willThrow) {
+            if (this._willThrow) {
                 try {
                     deferred.resolve(keys.map(key => this._findThatThrows(key)))
                 } catch (e) {
@@ -59,4 +61,9 @@ export default class MockDB {
         clearTimeout(this._timer)
         this._executing = false
     }
+    public throwsException(boolean) {
+        this._willThrow = boolean
+        return this
+    }
+
 }

@@ -10,7 +10,7 @@ export default class Batch {
     private _isQueueing: boolean
     constructor(batchingFunc: BatchingFunction) {
         if (typeof batchingFunc !== 'function') {
-            throw new TypeError('batchingFunc must be a function')
+            throw new TypeError(`batchingFunc must be a function. Recieved ${batchingFunc}`)
         }
         this._func = batchingFunc
         this._cache = {}
@@ -20,7 +20,7 @@ export default class Batch {
     }
     public load(key: key): Promise<any> {
         if (!['string', 'number'].includes(typeof key)) {
-            throw new TypeError('key must be a string or number.')
+            throw new TypeError(`key must be a string or number. Recieved ${key}`)
         }
         if (!this._cache[key]) {
             this._cache[key] = new Deferred()
@@ -45,6 +45,7 @@ export default class Batch {
             const values = await this._func(keys).catch(e => {
                 for (let key of keys) {
                     this._cache[key].reject(e)
+                    this._cache[key] = undefined
                 }
                 return null
             })
@@ -75,5 +76,8 @@ export default class Batch {
         this._cache[key] = new Deferred()
         this._cache[key].resolve(value)
         return this._cache[key].promise
+    }
+    public getFromCache(key) {
+        return this._cache[key] ? this._cache[key].promise : null
     }
 }
