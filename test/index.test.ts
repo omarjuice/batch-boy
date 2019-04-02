@@ -170,6 +170,32 @@ describe('Batch utility functions', () => {
             expect(spyOnDbExecute.callCount).toBe(1)
         })
     })
+    describe('reload', () => {
+        it('Should reload keys already loaded before', async () => {
+            const db = new MockDB(10, 100, genResolution)
+            const batcher = new Batch(keys => batchingFunction(keys, db))
+            const spyOnDbExecute = sinon.spy(db, '_execute')
+            await Promise.all(arrayOfIntegers(3, 7).map(n => batcher.load(n)))
+            expect(spyOnDbExecute.callCount).toBe(1)
+            const result = await batcher.reload(1)
+            expect(result).toMatchObject(genResolution(result.key))
+            expect(spyOnDbExecute.callCount).toBe(2)
+        })
+    })
+    describe('reloadMany', () => {
+        it('Should reload many keys', async () => {
+            const db = new MockDB(10, 100, genResolution)
+            const batcher = new Batch(keys => batchingFunction(keys, db))
+            const spyOnDbExecute = sinon.spy(db, '_execute')
+            await Promise.all(arrayOfIntegers(3, 7).map(n => batcher.load(n)))
+            expect(spyOnDbExecute.callCount).toBe(1)
+            const results = await batcher.reloadMany([4, 6])
+            for (let result of results) {
+                expect(result).toMatchObject(genResolution(result.key))
+            }
+            expect(spyOnDbExecute.callCount).toBe(2)
+        })
+    })
 })
 describe('Error handling', () => {
     it('rejects errors normally', async () => {

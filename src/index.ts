@@ -70,11 +70,13 @@ export default class Batch {
     }
     public clearCache() {
         this._cache = {}
+        return this
     }
-    public clearKeys(identifiers: key[]) {
-        for (let identifier of identifiers) {
-            this._cache[identifier] = undefined
+    public clearKeys(keys: key[]) {
+        for (let key of keys) {
+            this._cache[key] = undefined
         }
+        return this
     }
     public prime(key: key, value: any): Promise<any> {
         this._cache[key] = new Deferred()
@@ -83,5 +85,11 @@ export default class Batch {
     }
     public getFromCache(key) {
         return this._cache[key] ? this._cache[key].promise : null
+    }
+    public reload(key: key) {
+        return this.clearKeys([key]).load(key)
+    }
+    public reloadMany(keys: key[]) {
+        return this.clearKeys(keys).loadMany(keys)
     }
 }
