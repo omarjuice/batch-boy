@@ -6,7 +6,7 @@ lumps together load requests that occur close together in time.
 
 An implementation of [Dataloader](https://github.com/graphql/dataloader).
 
-[A major difference between batch-boy and Dataloader.](#A-major-difference-between-batch-boy-and-dataloader!!!)
+[A major difference between batch-boy and Dataloader.](#A-major-difference-from-dataloader!!!)
 
 
 ## Installation
@@ -135,7 +135,7 @@ Clears multiple keys from the batcher. Returns the batcher for method chaining.
 batcher.ongoingJobsEnableQueueing(false)
 ```
 Calling with false makes it so that the batcher does not wait for the previous job to finish before dispatching the next job.
-[See below for in-depth explanation.](#A-major-difference-between-batch-boy-and-dataloader!!!)
+[See below for in-depth explanation.](#A-major-difference-from-dataloader!!!)
 
 ## Patterns
 It is suggested that `Batch` is used on a per request basis, because caching data at an application level can have problematic effects if unmanaged.
@@ -155,7 +155,7 @@ const updatedUser = await batcher.reload(1) //updated user!
 It is worth noting that this can also be achieved by calling `batcher.clearKey` before a `batcher.load`. But why write extra code when this convenient API has got you covered...
 
 
-### A major difference between batch-boy and dataloader!!!
+### A major difference from dataloader
 
 While one batch is being processed, by default, requests for another batch on the same batcher will not be run until the previous batch has returned.
 
