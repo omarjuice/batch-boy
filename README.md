@@ -6,6 +6,8 @@ lumps together load requests that occur close together in time.
 
 An implementation of [Dataloader](https://github.com/graphql/dataloader).
 
+See bottom for a major difference between batch-boy and dataloader.
+
 
 ## Installation
 ```
@@ -146,3 +148,74 @@ await db.query(`UPDATE users SET username='oj' WHERE id=?`, [1])
 const updatedUser = await batcher.reload(1) //updated user!
 ```
 It is worth noting that this can also be achieved by calling `batcher.clearKey` before a `batcher.load`. But why write extra code when this convenient API has got you covered...
+
+
+### A major difference between batch-boy and dataloader!!!
+
+While one batch is being processed, requests for another batch on the same batcher will not be run until the previous batch has returned.
+
+```javascript
+describe('Test batch queueing', () => {
+    it('Should queue async calls while another batch is being processed', async () => {
+
+        const db = new MockDB(10, 100, genResolution)
+        const spyOnDbExecute = sinon.spy(db, '_execute')
+        const batcher = new Batch(keys => batchingFunction(keys, db))
+
+        //perform initial loading
+        const item1 = batcher.load(1)
+            .then(() => {
+                expect(batcher.prevBatch).toEqual([1])
+                expect(spyOnDbExecute.callCount).toBe(1)
+            })
+        // while that is being processed, more load requests come in
+        await timeBuffer(25)
+        const item2 = batcher.load(2)
+        await timeBuffer(25)
+        const item3 = batcher.load(3)
+        await timeBuffer(25)
+        const item4 = batcher.load(4)
+            .then(() => {
+                expect(batcher.prevBatch).toEqual([2, 3, 4]);
+                expect(spyOnDbExecute.callCount).toBe(2)
+            })
+        await timeBuffer(25)
+        /* because the database execution of 200 ms finished before the load request of the next call,
+            the next call is added to the next batch*/
+        const item5 = batcher.load(5)
+        const item6 = batcher.load(6)
+            .then(() => {
+                expect(batcher.prevBatch).toEqual([5, 6])
+            })
+
+        await (Promise.all([item1, item2, item3, item4, item5, item6]))
+        //results in 3 total calls
+        const { callCount } = spyOnDbExecute
+        expect(callCount).toBe(3)
+        console.log('batch-boy: ', callCount + ' calls')
+    })
+    it('dataloader does not queue async calls while another batch is being processed', async () => {
+        const db = new MockDB(10, 100, genResolution)
+        const spyOnDbExecute = sinon.spy(db, '_execute')
+        const batcher = new Dataloader(keys => batchingFunction(keys, db))
+
+        const item1 = batcher.load(1)
+        await timeBuffer(25)
+        const item2 = batcher.load(2)
+        await timeBuffer(25)
+        const item3 = batcher.load(3)
+        await timeBuffer(25)
+        const item4 = batcher.load(4)
+        await timeBuffer(25)
+        const item5 = batcher.load(5)
+        const item6 = batcher.load(6)
+        await (Promise.all([item1, item2, item3, item4, item5, item6]))
+        //results in 5 total calls
+        const { callCount } = spyOnDbExecute
+        expect(callCount).toBe(5)
+        console.log('dataloader: ', callCount + ' calls')
+    })
+})
+```
+
+Notice that while another batch is being processed, batcher queues calls to load that occur within the timeframe of the currently executing process, not just during the same event loop. For most use cases, this is ideal for SQL database querying because they can only run one process at a time as it results in less trips to the database.

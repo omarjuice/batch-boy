@@ -275,7 +275,7 @@ describe('Test batch queueing', () => {
         expect(callCount).toBe(3)
         console.log('batch-boy: ', callCount + ' calls')
     })
-    it('dataloader does not queue async calls while another batch is being processedc', async () => {
+    it('dataloader does not queue async calls while another batch is being processed', async () => {
         const db = new MockDB(10, 100, genResolution)
         const spyOnDbExecute = sinon.spy(db, '_execute')
         const batcher = new Dataloader(keys => batchingFunction(keys, db))
