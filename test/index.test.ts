@@ -1,6 +1,7 @@
 import * as expect from 'expect'
 import * as sinon from 'sinon'
 import Batch from '../src/index'
+import * as Dataloader from 'dataloader'
 import { Resolution, key } from '../src/types'
 import MockDB from './mockDB';
 import { genResolution, arrayOfIntegers, timeBuffer } from './utils';
@@ -11,7 +12,7 @@ const Resolution = {
     resolution: expect.any(String)
 }
 
-const batchingFunction = async (keys: key[], db: MockDB) => {
+const batchingFunction = async (keys, db: MockDB) => {
     const results = await db.query(keys)
     const resultsMap = results.reduce((acc, item: Resolution) => {
         if (item) {
@@ -237,6 +238,7 @@ describe('Error handling', () => {
 })
 describe('Test batch queueing', () => {
     it('Should queue async calls while another batch is being processed', async () => {
+
         const db = new MockDB(10, 100, genResolution)
         const spyOnDbExecute = sinon.spy(db, '_execute')
         const batcher = new Batch(keys => batchingFunction(keys, db))
@@ -269,7 +271,30 @@ describe('Test batch queueing', () => {
 
         await (Promise.all([item1, item2, item3, item4, item5, item6]))
         //results in 3 total calls
-        expect(spyOnDbExecute.callCount).toBe(3)
+        const { callCount } = spyOnDbExecute
+        expect(callCount).toBe(3)
+        console.log('batch-boy: ', callCount + ' calls')
+    })
+    it('dataloader does not queue async calls while another batch is being processedc', async () => {
+        const db = new MockDB(10, 100, genResolution)
+        const spyOnDbExecute = sinon.spy(db, '_execute')
+        const batcher = new Dataloader(keys => batchingFunction(keys, db))
+
+        const item1 = batcher.load(1)
+        await timeBuffer(25)
+        const item2 = batcher.load(2)
+        await timeBuffer(25)
+        const item3 = batcher.load(3)
+        await timeBuffer(25)
+        const item4 = batcher.load(4)
+        await timeBuffer(25)
+        const item5 = batcher.load(5)
+        const item6 = batcher.load(6)
+        await (Promise.all([item1, item2, item3, item4, item5, item6]))
+        //results in 5 total calls
+        const { callCount } = spyOnDbExecute
+        expect(callCount).toBe(5)
+        console.log('dataloader: ', callCount + ' calls')
     })
 })
 
