@@ -180,7 +180,7 @@ describe('Test batch queueing', () => {
                 expect(spyOnDbExecute.callCount).toBe(2)
             })
         await timeBuffer(25)
-        /* because the database execution of 200 ms finished before the load request of the next call,
+        /* because the database execution of 100 ms finished before the load request of the next call,
             the next call is added to the next batch*/
         const item5 = batcher.load(5)
         const item6 = batcher.load(6)

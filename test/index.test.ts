@@ -237,7 +237,7 @@ describe('Error handling', () => {
     })
 })
 describe('Test batch queueing', () => {
-    it('Should queue async calls while another batch is being processed', async () => {
+    it('ongoingJobsEnableQueueing(true) Should queue async calls while another batch is being processed', async () => {
 
         const db = new MockDB(10, 100, genResolution)
         const spyOnDbExecute = sinon.spy(db, '_execute')
@@ -261,7 +261,7 @@ describe('Test batch queueing', () => {
                 expect(spyOnDbExecute.callCount).toBe(2)
             })
         await timeBuffer(25)
-        /* because the database execution of 200 ms finished before the load request of the next call,
+        /* because the database execution of 100 ms finished before the load request of the next call,
             the next call is added to the next batch*/
         const item5 = batcher.load(5)
         const item6 = batcher.load(6)
@@ -273,7 +273,7 @@ describe('Test batch queueing', () => {
         //results in 3 total calls
         const { callCount } = spyOnDbExecute
         expect(callCount).toBe(3)
-        console.log('batch-boy: ', callCount + ' calls')
+        console.log('batch-boy(ongoingJobsEnableQueueing(true)): ', callCount + ' calls')
     })
     it('dataloader does not queue async calls while another batch is being processed', async () => {
         const db = new MockDB(10, 100, genResolution)
@@ -295,6 +295,27 @@ describe('Test batch queueing', () => {
         const { callCount } = spyOnDbExecute
         expect(callCount).toBe(5)
         console.log('dataloader: ', callCount + ' calls')
+    })
+    it('ongoinJobsEnableQueueing(false) disables batch queueing for the next job', async () => {
+        const db = new MockDB(10, 100, genResolution)
+        const spyOnDbExecute = sinon.spy(db, '_execute')
+        const batch = new Batch(keys => batchingFunction(keys, db)).ongoingJobsEnableQueueing(false)
+
+        const item1 = batch.load(1)
+        await timeBuffer(25)
+        const item2 = batch.load(2)
+        await timeBuffer(25)
+        const item3 = batch.load(3)
+        await timeBuffer(25)
+        const item4 = batch.load(4)
+        await timeBuffer(25)
+        const item5 = batch.load(5)
+        const item6 = batch.load(6)
+        await (Promise.all([item1, item2, item3, item4, item5, item6]))
+        //results in 5 total calls
+        const { callCount } = spyOnDbExecute
+        expect(callCount).toBe(5)
+        console.log('batch-boy(ongoingJobsEnableQueueing(false)): ', callCount + ' calls')
     })
 })
 

@@ -12,6 +12,7 @@ export default class Batch {
     private _queue: key[]
     public prevBatch: key[]
     private _isQueueing: boolean
+    private _ongoingJobsEnableQueueing: boolean
     constructor(batchingFunc: BatchingFunction) {
         if (typeof batchingFunc !== 'function') {
             throw new TypeError(`batchingFunc must be a function. Recieved ${batchingFunc}`)
@@ -21,6 +22,7 @@ export default class Batch {
         this._queue = []
         this._isQueueing = false
         this.prevBatch = []
+        this._ongoingJobsEnableQueueing = true
     }
     public load(key: key): Promise<any> {
         if (!['string', 'number'].includes(typeof key)) {
@@ -43,30 +45,32 @@ export default class Batch {
         }
     }
     private _dispatch() {
-        process.nextTick(async () => {
-            const keys: key[] = [...this._queue]
+        process.nextTick(eval(`
+        ${this._ongoingJobsEnableQueueing ? 'async' : ''} () => {
+            const keys = [...this._queue]
             this._queue = []
-            const values = await this._func(keys).catch(e => {
-                for (let key of keys) {
-                    this._cache[key].reject(e)
-                    this._cache[key] = undefined
-                }
-                return null
-            })
-            if (values) {
-                for (let i = 0; i < keys.length; i++) {
-                    const key = keys[i]
-                    const value = values[i]
-                    this._cache[key].resolve(value)
-                }
-                this.prevBatch = [...keys]
-            }
+            ${this._ongoingJobsEnableQueueing ? 'await' : ''} this._func(keys)
+                .then((values) => {
+                    for (let i = 0; i < keys.length; i++) {
+                        const key = keys[i]
+                        const value = values[i]
+                        this._cache[key].resolve(value)
+                    }
+                    this.prevBatch = [...keys]
+                })
+                .catch(e => {
+                    for (let key of keys) {
+                        this._cache[key].reject(e)
+                        this._cache[key] = undefined
+                    }
+                    return null
+                })
             if (this._queue.length) {
                 this._dispatch()
             } else {
                 this._isQueueing = false
             }
-        })
+        }`))
     }
     public clearCache() {
         this._cache = {}
@@ -95,5 +99,9 @@ export default class Batch {
     }
     public reloadMany(keys: key[]) {
         return this.clearKeys(keys).loadMany(keys)
+    }
+    public ongoingJobsEnableQueueing(bool = true) {
+        this._ongoingJobsEnableQueueing = bool
+        return this
     }
 }
