@@ -72,6 +72,10 @@ export default class Batch {
         this._cache = {}
         return this
     }
+    public clearKey(key: key) {
+        this._cache[key] = undefined
+        return this
+    }
     public clearKeys(keys: key[]) {
         for (let key of keys) {
             this._cache[key] = undefined
@@ -87,7 +91,7 @@ export default class Batch {
         return this._cache[key] ? this._cache[key].promise : null
     }
     public reload(key: key) {
-        return this.clearKeys([key]).load(key)
+        return this.clearKey(key).load(key)
     }
     public reloadMany(keys: key[]) {
         return this.clearKeys(keys).loadMany(keys)
