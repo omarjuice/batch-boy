@@ -45,7 +45,9 @@ const anotherFuncThatNeedsData = async () => {
 funcThatNeedsData()
 anotherFuncThatNeedsData()
 
-// using the same instance of Batch to load data into functions that occur within the same event loop results in only one call to the database
+// using the same instance of Batch to load data into functions that 
+// occur within the same event loop results in only one 
+// call to the database
 
 ```
 
@@ -56,19 +58,19 @@ The above is the typical use case for batch-boy.
 
 ## API
 
-#### batcher.load(key: string | number) : Promise<any>
+#### `batcher.load(key: string | number) : Promise<any>`
 ```javascript
 const user = await batcher.load(1)
 ```
 Returns a promise for a value.
 ***
-#### batcher.loadMany(keys: key[]): Promise<any[]>
+#### `batcher.loadMany(keys: key[]): Promise<any[]>`
 ```javascript
 const users = await batcher.loadMany([1,2,3,4,5])
 ```
 Returns a promise for an array of values.
 ***
-#### batcher.prime(key: string | number, value: any): Promise
+#### `batcher.prime(key: string | number, value: any): Promise<any>`
 ```javascript
 const [oj, billy] = await batcherByUsername.loadMany(['oj', 'billy'])
 batcherByUserId.prime(1, oj)
@@ -78,14 +80,14 @@ const user2 = await batcherByUserId.load(2) //billy is already there!
 ```
 Primes the cache of the batcher instance with the key and value and returns a promise for that value.
 ***
-#### batcher.getFromCache(key: string | number): Promise<any>
+#### `batcher.getFromCache(key: string | number): Promise<any> | null`
 ```javascript
 const dataFromCache = await batcher.getFromCache(5)
 ```
-Returns a promise for a value in the batcher's cache.
+Returns a promise for a value in the batcher's cache. Returns null if a value for the provided key is not found or is falsy.
 _Does not_ refetch the data.
 ***
-#### batcher.reload(key: string | number): Promise
+#### `batcher.reload(key: string | number): Promise<any>`
 ```javascript
 const refetchedItem = await batcher.reload(5)
 ```
@@ -98,19 +100,19 @@ const refetchedItems = await batcher.reloadMany([1,2,3,4,5])
 Accepts an array of keys and reloads many.
 
 ***
-#### batcher.clearCache() : Batch
+#### `batcher.clearCache() : Batch`
 ```javascript
 batcher.clearCache()
 ```
 Clears the cache of the batcher. Returns the batcher for method chaining.
 ***
-#### batcher.clearKey(key) : Batch
+#### `batcher.clearKey(key) : Batch`
 ```javascript
 batcher.clearKey(1)
 ```
 Clears a specific key from the batcher. Returns the batcher for method chaining.
 ***
-#### batcher.clearKeys(keys: key[]) : Batch
+#### `batcher.clearKeys(keys: key[]) : Batch`
 ```javascript
 batcher.clearKeys(['oj', 'billy'])
 ```
