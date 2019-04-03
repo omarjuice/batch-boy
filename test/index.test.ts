@@ -312,7 +312,7 @@ describe('Test batch queueing', () => {
         const item5 = batch.load(5)
         const item6 = batch.load(6)
         await (Promise.all([item1, item2, item3, item4, item5, item6]))
-        //results in 5 total calls
+        //results in 5 total calls, like Dataloader
         const { callCount } = spyOnDbExecute
         expect(callCount).toBe(5)
         console.log('batch-boy(ongoingJobsEnableQueueing(false)): ', callCount + ' calls')

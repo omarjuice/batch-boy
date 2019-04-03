@@ -6,7 +6,7 @@ lumps together load requests that occur close together in time.
 
 An implementation of [Dataloader](https://github.com/graphql/dataloader).
 
-See bottom for a major difference between batch-boy and dataloader.
+[A major difference between batch-boy and Dataloader.](#A major difference between batch-boy and dataloader!!!)
 
 
 ## Installation
@@ -130,7 +130,12 @@ Clears a specific key from the batcher. Returns the batcher for method chaining.
 batcher.clearKeys(['oj', 'billy'])
 ```
 Clears multiple keys from the batcher. Returns the batcher for method chaining.
-
+#### `batcher.ongoingJobsEnableQueueing(bool: boolean = true) : Batch`
+```javascript
+batcher.ongoingJobsEnableQueueing(false)
+```
+Calling with false makes it so that the batcher does not wait for the previous job to finish before dispatching the next job.
+[See below for in depth explanation.](#A major difference between batch-boy and dataloader!!!)
 
 ## Patterns
 It is suggested that `Batch` is used on a per request basis, because caching data at an application level can have problematic effects if unmanaged.
@@ -152,11 +157,16 @@ It is worth noting that this can also be achieved by calling `batcher.clearKey` 
 
 ### A major difference between batch-boy and dataloader!!!
 
-While one batch is being processed, requests for another batch on the same batcher will not be run until the previous batch has returned.
+While one batch is being processed, by default, requests for another batch on the same batcher will not be run until the previous batch has returned.
+
+Notice that while another batch is being processed, batcher queues calls to `batcher.load` that occur within the timeframe of the currently executing process, not just during the same event loop. For most use cases, this is ideal for single SQL database querying because they can only run one process at a time as it results in less trips to the database.
+
+This behavior may be sometimes undesired, so control is given to the user with `batcher.ongoingJobsEnableQueuing(boolean)`. By default, this is true, resulting the the aforementioned behavior, but calling this method with false will result in a similar execution pattern to Dataloader's.
+Tests run demonstrating this behavior:
 
 ```javascript
 describe('Test batch queueing', () => {
-    it('Should queue async calls while another batch is being processed', async () => {
+    it('ongoingJobsEnableQueueing(true) Should queue async calls while another batch is being processed', async () => {
 
         const db = new MockDB(10, 100, genResolution)
         const spyOnDbExecute = sinon.spy(db, '_execute')
@@ -192,7 +202,7 @@ describe('Test batch queueing', () => {
         //results in 3 total calls
         const { callCount } = spyOnDbExecute
         expect(callCount).toBe(3)
-        console.log('batch-boy: ', callCount + ' calls')
+        console.log('batch-boy(ongoingJobsEnableQueueing(true)): ', callCount + ' calls')
     })
     it('dataloader does not queue async calls while another batch is being processed', async () => {
         const db = new MockDB(10, 100, genResolution)
@@ -215,7 +225,26 @@ describe('Test batch queueing', () => {
         expect(callCount).toBe(5)
         console.log('dataloader: ', callCount + ' calls')
     })
+    it('ongoinJobsEnableQueueing(false) disables batch queueing for the next job', async () => {
+        const db = new MockDB(10, 100, genResolution)
+        const spyOnDbExecute = sinon.spy(db, '_execute')
+        const batch = new Batch(keys => batchingFunction(keys, db)).ongoingJobsEnableQueueing(false)
+
+        const item1 = batch.load(1)
+        await timeBuffer(25)
+        const item2 = batch.load(2)
+        await timeBuffer(25)
+        const item3 = batch.load(3)
+        await timeBuffer(25)
+        const item4 = batch.load(4)
+        await timeBuffer(25)
+        const item5 = batch.load(5)
+        const item6 = batch.load(6)
+        await (Promise.all([item1, item2, item3, item4, item5, item6]))
+        //results in 5 total calls, like Dataloader
+        const { callCount } = spyOnDbExecute
+        expect(callCount).toBe(5)
+        console.log('batch-boy(ongoingJobsEnableQueueing(false)): ', callCount + ' calls')
+    })
 })
 ```
-
-Notice that while another batch is being processed, batcher queues calls to `batcher.load` that occur within the timeframe of the currently executing process, not just during the same event loop. For most use cases, this is ideal for single SQL database querying because they can only run one process at a time as it results in less trips to the database.
