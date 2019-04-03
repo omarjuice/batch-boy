@@ -278,18 +278,18 @@ describe('Test batch queueing', () => {
     it('dataloader does not queue async calls while another batch is being processed', async () => {
         const db = new MockDB(10, 100, genResolution)
         const spyOnDbExecute = sinon.spy(db, '_execute')
-        const batcher = new Dataloader(keys => batchingFunction(keys, db))
+        const dataloader = new Dataloader(keys => batchingFunction(keys, db))
 
-        const item1 = batcher.load(1)
+        const item1 = dataloader.load(1)
         await timeBuffer(25)
-        const item2 = batcher.load(2)
+        const item2 = dataloader.load(2)
         await timeBuffer(25)
-        const item3 = batcher.load(3)
+        const item3 = dataloader.load(3)
         await timeBuffer(25)
-        const item4 = batcher.load(4)
+        const item4 = dataloader.load(4)
         await timeBuffer(25)
-        const item5 = batcher.load(5)
-        const item6 = batcher.load(6)
+        const item5 = dataloader.load(5)
+        const item6 = dataloader.load(6)
         await (Promise.all([item1, item2, item3, item4, item5, item6]))
         //results in 5 total calls
         const { callCount } = spyOnDbExecute
