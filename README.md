@@ -55,6 +55,16 @@ The above is the typical use case for batch-boy.
 
 **Note**: Any kind of processing or other logic can occur in the batching function. The only requirements are that it accepts an array of keys and returns a promise that resolves to an array of values.
 
+We are using `key.map` at the return of the function because `Batch` assumes that the values returned correspond to the keys passed in.
+
+
+Not only that, but corresponding data for a specific key is never guaranteed, so we must control for that by returning some kind of value for keys that dont have corresponding data. 
+
+If you want keys that dont get mapped to corresponding data to be refetched next time `batcher.load` is called, we could simply assign the key to a falsy value. Otherwise, we give such a key an object or some other truthy value. Them the data can only be refetched with `batcher.reload`.
+
+
+We use `data.reduce` before that to place the data into an object so that map can do its thing. 
+
 
 ## API
 
