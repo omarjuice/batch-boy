@@ -6,7 +6,7 @@ lumps together load requests that occur close together in time.
 
 An implementation of [Dataloader](https://github.com/graphql/dataloader).
 
-[A major difference between batch-boy and Dataloader.](#A major difference between batch-boy and dataloader!!!)
+[A major difference between batch-boy and Dataloader.](#A-major-difference-between-batch-boy-and-dataloader!!!)
 
 
 ## Installation
@@ -135,7 +135,7 @@ Clears multiple keys from the batcher. Returns the batcher for method chaining.
 batcher.ongoingJobsEnableQueueing(false)
 ```
 Calling with false makes it so that the batcher does not wait for the previous job to finish before dispatching the next job.
-[See below for in depth explanation.](#A major difference between batch-boy and dataloader!!!)
+[See below for in-depth explanation.](#A-major-difference-between-batch-boy-and-dataloader!!!)
 
 ## Patterns
 It is suggested that `Batch` is used on a per request basis, because caching data at an application level can have problematic effects if unmanaged.
