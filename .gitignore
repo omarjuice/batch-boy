@@ -1,3 +1,4 @@
 /node_modules
 stats.js
 /dist
+.DS_Store

@@ -2,7 +2,7 @@ import * as expect from 'expect'
 import * as sinon from 'sinon'
 import Batch from '../src/index'
 import * as Dataloader from 'dataloader'
-import { Resolution, key } from '../src/types'
+import { Resolution, key } from './types'
 import MockDB from './mockDB';
 import { genResolution, arrayOfIntegers, timeBuffer } from './utils';
 

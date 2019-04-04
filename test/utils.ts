@@ -1,4 +1,4 @@
-import { Resolution } from "../src/types";
+import { Resolution } from "./types";
 
 export const genResolution = (key: any): Resolution => {
     return {

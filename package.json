@@ -12,9 +12,10 @@
     "test:watch": "npm run test -- --watch-extensions ts --watch",
     "build": "tsc",
     "prepare": "npm run build",
-    "prepublishOnly": "npm test"
+    "prepublishOnly": "npm test",
+    "version": "git add -A src"
   },
-  "author": "Omar Juice",
+  "author": "omarjuice",
   "license": "MIT",
   "devDependencies": {
     "@types/expect": "^1.20.4",
@@ -28,6 +29,10 @@
     "sinon": "^7.3.1",
     "ts-node": "^8.0.3",
     "typescript": "^3.4.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/omarjuice/batch-boy.git"
   },
   "keywords": [
     "batch",
