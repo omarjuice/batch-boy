@@ -237,7 +237,7 @@ describe('Error handling', () => {
     })
 })
 describe('Test batch queueing', () => {
-    it('ongoingJobsEnableQueueing(true) Should queue async calls while another batch is being processed', async () => {
+    it('ongoingJobsEnableQueueing(true) queues async calls while another batch is being processed', async () => {
 
         const db = new MockDB(10, 100, genResolution)
         const spyOnDbExecute = sinon.spy(db, '_execute')

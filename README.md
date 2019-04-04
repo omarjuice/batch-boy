@@ -77,13 +77,13 @@ const user = await batcher.load(1)
 ```
 Returns a promise for a value.
 ***
-#### `batcher.loadMany(keys: key[]): Promise<any[]>`
+#### `batcher.loadMany(keys: key[]) : Promise<any[]>`
 ```javascript
 const users = await batcher.loadMany([1,2,3,4,5])
 ```
 Returns a promise for an array of values.
 ***
-#### `batcher.prime(key: string | number, value: any): Promise<any>`
+#### `batcher.prime(key: string | number, value: any) : Promise<any>`
 ```javascript
 const [oj, billy] = await batcherByUsername.loadMany(['oj', 'billy'])
 batcherByUserId.prime(1, oj)
@@ -93,20 +93,20 @@ const user2 = await batcherByUserId.load(2) //billy is already there!
 ```
 Primes the cache of the batcher instance with the key and value and returns a promise for that value.
 ***
-#### `batcher.getFromCache(key: string | number): Promise<any> | null`
+#### `batcher.getFromCache(key: string | number) : Promise<any> | null`
 ```javascript
 const dataFromCache = await batcher.getFromCache(5)
 ```
 Returns a promise for a value in the batcher's cache. Returns null if a value for the provided key is not found or is falsy.
 _Does not_ refetch the data.
 ***
-#### `batcher.reload(key: string | number): Promise<any>`
+#### `batcher.reload(key: string | number) : Promise<any>`
 ```javascript
 const refetchedItem = await batcher.reload(5)
 ```
 Refetches data that is in the cache. Return a promise for said data.
 ***
-#### batcher.reloadMany(keys: key[]): Promise<any[]>
+#### `batcher.reloadMany(keys: key[]) : Promise<any[]>`
 ```javascript
 const refetchedItems = await batcher.reloadMany([1,2,3,4,5])
 ```
@@ -159,14 +159,16 @@ It is worth noting that this can also be achieved by calling `batcher.clearKey` 
 
 While one batch is being processed, by default, requests for another batch on the same batcher will not be run until the previous batch has returned.
 
-Notice that while another batch is being processed, batcher queues calls to `batcher.load` that occur within the timeframe of the currently executing process, not just during the same event loop. For most use cases, this is ideal for single SQL database querying because they can only run one process at a time as it results in less trips to the database.
+Notice that while another batch is being processed, batcher queues calls to `batcher.load` that occur within the timeframe of the currently executing process, not just during the same event loop. 
 
-This behavior may be sometimes undesired, so control is given to the user with `batcher.ongoingJobsEnableQueuing(boolean)`. By default, this is true, resulting the the aforementioned behavior, but calling this method with false will result in a similar execution pattern to Dataloader's.
+This behavior may be sometimes undesired, so control is given to the user with `batcher.ongoingJobsEnableQueuing(boolean)`. By default, this is `true`, resulting the the aforementioned behavior, but calling this method with `false` will result in a similar execution pattern to Dataloader's.
+
+
 Tests run demonstrating this behavior:
 
 ```javascript
 describe('Test batch queueing', () => {
-    it('ongoingJobsEnableQueueing(true) Should queue async calls while another batch is being processed', async () => {
+    it('ongoingJobsEnableQueueing(true) queues async calls while another batch is being processed', async () => {
 
         const db = new MockDB(10, 100, genResolution)
         const spyOnDbExecute = sinon.spy(db, '_execute')
