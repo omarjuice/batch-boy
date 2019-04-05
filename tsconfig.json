@@ -3,13 +3,13 @@
     "target": "es5",
     "module": "commonjs",
     "declaration": true,
-    "outDir": "./",
+    "outDir": "./dist",
     "skipLibCheck": true,
     "strict": false
   },
   "include": [
     "src/index.ts",
-    "src/types.d.ts"
+    "types.d.ts"
   ],
   "exclude": [
     "node_modules",

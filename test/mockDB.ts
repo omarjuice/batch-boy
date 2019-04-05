@@ -1,5 +1,5 @@
 import Deferred from '../src/Deferred';
-import { IDeferred, key } from './types';
+import { IDeferred, key } from '../types';
 
 export default class MockDB {
     private _entries: any[]
