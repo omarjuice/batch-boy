@@ -3,18 +3,17 @@
   "version": "1.0.4",
   "description": "A data loading utility for batching and caching asynchronous actions",
   "main": "index.js",
-  "types": "types.d.ts",
+  "types": "index.d.ts",
   "files": [
-    "dist/index.js",
-    "dist/index.d.ts",
-    "dist/Deferred.js",
-    "dist/Deferred.d.ts",
-    "types.d.ts"
+    "index.js",
+    "index.d.ts",
+    "Deferred.js",
+    "Deferred.d.ts"
   ],
   "scripts": {
     "test": "mocha -w -r ts-node/register test/index.test.ts --no-timeouts",
     "test:watch": "npm run test -- --watch-extensions ts --watch",
-    "build": "tsc",
+    "build": "tsc --declaration",
     "prepare": "npm run build",
     "version": "git add -A src"
   },

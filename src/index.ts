@@ -1,9 +1,9 @@
 import Deferred from './Deferred';
-import { IDeferred, BatchingFunction, Cache, key } from '../types';
+import { BatchingFunction, Cache, key } from '../types';
 
 
 
-class Batch {
+export class Batch {
     private _func: BatchingFunction
     private _cache: Cache
     private _queue: key[]
