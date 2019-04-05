@@ -1,15 +1,15 @@
 import Deferred from '../src/Deferred';
-import { IDeferred, Resolution, ResolutionGenerator, key } from './types';
+import { IDeferred, key } from './types';
 
 export default class MockDB {
-    private _entries: Resolution[]
+    private _entries: any[]
     private _queries: any[]
     private _throttle: number
     private _executing: boolean
     private _timer: any
     private _willThrow: boolean
     public error: Error
-    constructor(numEntries: number, throttle: number, resolutionGenerator: ResolutionGenerator, customKeys: any[] = []) {
+    constructor(numEntries: number, throttle: number, resolutionGenerator, customKeys: any[] = []) {
         this._entries = [];
         this._throttle = throttle
         this._queries = []
@@ -21,7 +21,7 @@ export default class MockDB {
             this._entries.push(resolutionGenerator(customKeys[i] || i + 1))
         }
     }
-    public query(keys: key[]): Promise<Resolution[]> {
+    public query(keys: key[]): Promise<any[]> {
         const deferred: IDeferred = new Deferred();
         this._queries.push(() => {
             if (this._willThrow) {

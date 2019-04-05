@@ -1,11 +1,12 @@
 {
   "name": "batch-boy",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "A data loading utility for batching and caching asynchronous actions",
   "main": "index.js",
-  "typings": "index.d.ts",
+  "types": "index.d.ts",
   "files": [
-    "index.js"
+    "index.js",
+    "index.d.ts"
   ],
   "scripts": {
     "test": "mocha -w -r ts-node/register test/index.test.ts --no-timeouts",

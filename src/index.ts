@@ -6,7 +6,7 @@ export type Cache = {
 export type key = string | number
 export type BatchingFunction = (keys: any[]) => Promise<any[]>
 
-module.exports = class Batch {
+class Batch {
     private _func: BatchingFunction
     private _cache: Cache
     private _queue: key[]
@@ -105,3 +105,5 @@ module.exports = class Batch {
         return this
     }
 }
+// module.exports = Batch
+export default Batch

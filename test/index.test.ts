@@ -2,7 +2,6 @@ import * as expect from 'expect'
 import * as sinon from 'sinon'
 import Batch from '../src/index'
 import * as Dataloader from 'dataloader'
-import { Resolution, key } from './types'
 import MockDB from './mockDB';
 import { genResolution, arrayOfIntegers, timeBuffer } from './utils';
 
@@ -14,7 +13,7 @@ const Resolution = {
 
 const batchingFunction = async (keys, db: MockDB) => {
     const results = await db.query(keys)
-    const resultsMap = results.reduce((acc, item: Resolution) => {
+    const resultsMap = results.reduce((acc, item) => {
         if (item) {
             acc[item.key] = item
             return acc
@@ -157,7 +156,7 @@ describe('Batch utility functions', () => {
             const spyOnDbExecute = sinon.spy(db, '_execute')
             const primeValue = { key: 9, resolution: 'SuperSecretValue' }
             batcher.prime(9, primeValue)
-            const results: Resolution[] = await Promise.all([
+            const results = await Promise.all([
                 batcher.load(3),
                 batcher.load(10),
                 batcher.load(9),
