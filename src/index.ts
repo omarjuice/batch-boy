@@ -105,5 +105,4 @@ class Batch {
         return this
     }
 }
-// module.exports = Batch
-export default Batch
+module.exports = Batch

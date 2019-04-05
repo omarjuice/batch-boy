@@ -1,6 +1,6 @@
 import * as expect from 'expect'
 import * as sinon from 'sinon'
-import Batch from '../src/index'
+const Batch = require('../index')
 import * as Dataloader from 'dataloader'
 import MockDB from './mockDB';
 import { genResolution, arrayOfIntegers, timeBuffer } from './utils';
