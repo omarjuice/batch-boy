@@ -2,17 +2,16 @@
   "name": "batch-boy",
   "version": "1.0.0",
   "description": "A data loading utility for batching and caching asynchronous actions",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "index.js",
+  "typings": "index.d.ts",
   "files": [
-    "dist/**/*"
+    "index.js"
   ],
   "scripts": {
     "test": "mocha -w -r ts-node/register test/index.test.ts --no-timeouts",
     "test:watch": "npm run test -- --watch-extensions ts --watch",
     "build": "tsc",
     "prepare": "npm run build",
-    "prepublishOnly": "npm test",
     "version": "git add -A src"
   },
   "author": "omarjuice",
