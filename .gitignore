@@ -2,7 +2,7 @@
 stats.js
 /dist
 .DS_Store
-./index.js
-./index.d.ts
-./Deferred.js
-./Deferred.d.ts
+index.js
+index.d.ts
+Deferred.js
+Deferred.d.ts
