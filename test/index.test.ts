@@ -1,16 +1,13 @@
 import * as expect from 'expect'
 import * as sinon from 'sinon'
-const Batch = require('../index')
 import * as Dataloader from 'dataloader'
 import MockDB from './mockDB';
 import { genResolution, arrayOfIntegers, timeBuffer } from './utils';
-
-
+import { Batch } from '../dist/index';
 const Resolution = {
     key: expect.any(Number),
     resolution: expect.any(String)
 }
-
 const batchingFunction = async (keys, db: MockDB) => {
     const results = await db.query(keys)
     const resultsMap = results.reduce((acc, item) => {
@@ -22,8 +19,6 @@ const batchingFunction = async (keys, db: MockDB) => {
     }, {})
     return keys.map(key => resultsMap[key] ? resultsMap[key] : null)
 }
-
-
 describe('MockDB', () => {
     it('query returns a promise', () => {
         const db = new MockDB(100, 500, genResolution)

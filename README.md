@@ -18,7 +18,7 @@ npm install batch-boy --save
 ## Usage
 
 ```javascript
-const Batch = require('batch-boy')
+const { Batch } = require('batch-boy')
 
 const batchingFucntion = async keys => {
     const data = await database.query(
