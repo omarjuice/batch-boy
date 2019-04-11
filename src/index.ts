@@ -5,50 +5,85 @@ import Deferred from './Deferred';
 
 /** @class  */
 type batchingFunc = (keys: (string | number)[]) => Promise<any[]>;
-export class Batch {
-    /**
-     * @private
-     */
-    private _func: batchingFunc
-    /**
-     * @private
-     */
-    private _cache: {
+class BatchInternal {
+    public func: batchingFunc
+    public cache: {
         [key: string]: {
             resolve: (resolution: any) => any
             reject: (rejection: Error) => any
             promise: Promise<any>
         }
     }
+    public queue: string[] | number[]
+    public ongoingJobsEnableQueueing: boolean
+    public isQueueing: boolean
+    public previousBatch: (string | number)[]
+    constructor(batchingFunc: batchingFunc, prevBatch) {
+        this.func = batchingFunc
+        this.previousBatch = prevBatch
+        this.cache = {}
+        this.queue = []
+        this.isQueueing = false
+        this.ongoingJobsEnableQueueing = true
+    }
+    public addToQueue(key) {
+        this.queue.push(key)
+        if (!this.isQueueing) {
+            this.dispatch()
+            this.isQueueing = true
+        }
+    }
+    public dispatch() {
+        process.nextTick(eval(`
+        ${this.ongoingJobsEnableQueueing ? 'async' : ''} () => {
+            const keys = [...this.queue]
+            this.queue = []
+            ${this.ongoingJobsEnableQueueing ? 'await' : ''} this.func(keys)
+                .then((values) => {
+                    for (let i = 0; i < keys.length; i++) {
+                        const key = keys[i]
+                        const value = values[i]
+                        this.cache[key].resolve(value)
+                    }
+                    while(this.previousBatch.length){
+                        this.previousBatch.pop()
+                    }
+                    this.previousBatch.push(...keys)
+                })
+                .catch(e => {
+                    for (let key of keys) {
+                        this.cache[key].reject(e)
+                        this.cache[key] = undefined
+                    }
+                    return null
+                })
+            if (this.queue.length) {
+                this.dispatch()
+            } else {
+                this.isQueueing = false
+            }
+        }`))
+    }
+}
+const internal = Symbol('_internal_')
+export class Batch {
     /**
-     * @private
+     * @private operations.
      */
-    private _queue: string[] | number[]
+    private [internal]: BatchInternal
     /**
-     * The previous batch.
+     * @property The previous batch.
      */
     public prevBatch: any[]
     /**
-     * @private
-     */
-    private _isQueueing: boolean
-    /**
-     * @private
-     */
-    private _ongoingJobsEnableQueueing: boolean
-    /**
-     * @param batchingFunc takes an array of keys and resolves to a `Promise` for an array of values/
+     * @param batchingFunc takes an array of keys and resolves to a `Promise` for an array of values
      */
     constructor(batchingFunc: batchingFunc) {
         if (typeof batchingFunc !== 'function') {
             throw new TypeError(`batchingFunc must be a function. Recieved ${batchingFunc}`)
         }
-        this._func = batchingFunc
-        this._cache = {}
-        this._queue = []
-        this._isQueueing = false
         this.prevBatch = []
-        this._ongoingJobsEnableQueueing = true
+        this[internal] = new BatchInternal(batchingFunc, this.prevBatch)
     }
     /**
      * @method 
@@ -58,11 +93,11 @@ export class Batch {
         if (!['string', 'number'].includes(typeof key)) {
             throw new TypeError(`key must be a string or number. Recieved ${key}`)
         }
-        if (!this._cache[key]) {
-            this._cache[key] = new Deferred()
-            this._addToQueue(key)
+        if (!this[internal].cache[key]) {
+            this[internal].cache[key] = new Deferred()
+            this[internal].addToQueue(key)
         }
-        return this._cache[key].promise
+        return this[internal].cache[key].promise
     }
     /**
      * @method 
@@ -72,52 +107,11 @@ export class Batch {
         return Promise.all(keys.map(key => this.load(key)))
     }
     /**
-     * @private
-     */
-    private _addToQueue(key) {
-        this._queue.push(key)
-        if (!this._isQueueing) {
-            this._dispatch()
-            this._isQueueing = true
-        }
-    }
-    /**
-     * @private
-     */
-    private _dispatch() {
-        process.nextTick(eval(`
-        ${this._ongoingJobsEnableQueueing ? 'async' : ''} () => {
-            const keys = [...this._queue]
-            this._queue = []
-            ${this._ongoingJobsEnableQueueing ? 'await' : ''} this._func(keys)
-                .then((values) => {
-                    for (let i = 0; i < keys.length; i++) {
-                        const key = keys[i]
-                        const value = values[i]
-                        this._cache[key].resolve(value)
-                    }
-                    this.prevBatch = [...keys]
-                })
-                .catch(e => {
-                    for (let key of keys) {
-                        this._cache[key].reject(e)
-                        this._cache[key] = undefined
-                    }
-                    return null
-                })
-            if (this._queue.length) {
-                this._dispatch()
-            } else {
-                this._isQueueing = false
-            }
-        }`))
-    }
-    /**
      * @method 
      * Clear the cache of all values and keys.
      */
     public clearCache() {
-        this._cache = {}
+        this[internal].cache = {}
         return this
     }
     /**
@@ -125,7 +119,7 @@ export class Batch {
      * Clear a specific key from the cache.
      */
     public clearKey(key: string | number) {
-        this._cache[key] = undefined
+        this[internal].cache[key] = undefined
         return this
     }
     /**
@@ -134,7 +128,7 @@ export class Batch {
      */
     public clearKeys(keys: (string | number)[]): Batch {
         for (let key of keys) {
-            this._cache[key] = undefined
+            this[internal].cache[key] = undefined
         }
         return this
     }
@@ -143,16 +137,16 @@ export class Batch {
      * Sets the given key value pair in the cache.
      */
     public prime(key: string | number, value: any): Promise<any> {
-        this._cache[key] = new Deferred()
-        this._cache[key].resolve(value)
-        return this._cache[key].promise
+        this[internal].cache[key] = new Deferred()
+        this[internal].cache[key].resolve(value)
+        return this[internal].cache[key].promise
     }
     /**
      * @method
      * Returns a promise for a value that already exists in the cache
      */
     public getFromCache(key: string | number): Promise<any> | null {
-        return this._cache[key] ? this._cache[key].promise : null
+        return this[internal].cache[key] ? this[internal].cache[key].promise : null
     }
     /**
      * @method
@@ -175,7 +169,7 @@ export class Batch {
      * See [docs](https://www.npmjs.com/package/batch-boy#a-major-difference-from-dataloader)
      */
     public ongoingJobsEnableQueueing(bool: boolean = true): Batch {
-        this._ongoingJobsEnableQueueing = bool
+        this[internal].ongoingJobsEnableQueueing = bool
         return this
     }
 }

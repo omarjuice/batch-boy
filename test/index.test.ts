@@ -4,6 +4,7 @@ import * as Dataloader from 'dataloader'
 import MockDB from './mockDB';
 import { genResolution, arrayOfIntegers, timeBuffer } from './utils';
 import { Batch } from '../dist/index';
+
 const Resolution = {
     key: expect.any(Number),
     resolution: expect.any(String)
