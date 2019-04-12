@@ -5,15 +5,12 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist/index.js",
-    "dist/index.d.ts",
-    "dist/Deferred.js",
-    "dist/Deferred.d.ts",
-    "types.d.ts"
+    "dist/*"
   ],
   "scripts": {
-    "test": "export NODE_ENV=test && mocha -w -r ts-node/register test/index.test.ts --no-timeouts",
-    "test:watch": "npm run test -- --watch-extensions ts --watch",
+    "test": "mocha -w -r ts-node/register test/index.test.ts --no-timeouts",
+    "test:watch": "export NODE_ENV=test && npm run test -- --watch-extensions ts --watch",
+    "test:build": "export NODE_ENV=build && npm run test",
     "build": "export NODE_ENV=build && tsc --declaration",
     "prepare": "npm run build",
     "version": "git add -A src"

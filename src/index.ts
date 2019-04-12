@@ -44,10 +44,7 @@ class BatchInternal {
                         const value = values[i]
                         this.cache[key].resolve(value)
                     }
-                    while(this.previousBatch.length){
-                        this.previousBatch.pop()
-                    }
-                    this.previousBatch.push(...keys)
+                    this.previousBatch.splice(0, this.previousBatch.length, ...keys)
                 })
                 .catch(e => {
                     for (let key of keys) {
@@ -64,7 +61,9 @@ class BatchInternal {
         }`))
     }
 }
+
 const internal = Symbol('_internal_')
+
 class Batch {
     /**
      * @private operations.
