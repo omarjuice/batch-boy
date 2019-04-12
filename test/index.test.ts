@@ -20,12 +20,12 @@ const batchingFunction = async (keys, db: MockDB) => {
     return keys.map(key => resultsMap[key] ? resultsMap[key] : null)
 }
 describe('MockDB', () => {
-    it('query returns a promise', () => {
+    test('query returns a promise', () => {
         const db = new MockDB(100, 500, genResolution)
         expect(db.query([1])).toBeInstanceOf(Promise)
         db.stopExecution()
     })
-    it('demonstrates the problem', async () => {
+    test('demonstrates the problem', async () => {
         const db = new MockDB(100, 100, genResolution)
         const spyOnDbExecute = sinon.spy(db, '_execute')
         await Promise.all([
@@ -37,7 +37,7 @@ describe('MockDB', () => {
     })
 })
 describe('Batch', () => {
-    it('Should batch calls to a function', async () => {
+    test('Should batch calls to a function', async () => {
         const db = new MockDB(10, 100, genResolution)
         const spyOnDbExecute = sinon.spy(db, '_execute')
         const batcher = new Batch(keys => batchingFunction(keys, db))
@@ -52,7 +52,7 @@ describe('Batch', () => {
         }
         expect(spyOnDbExecute.callCount).toBe(1)
     })
-    it('Should be able to perform multiple batches', async () => {
+    test('Should be able to perform multiple batches', async () => {
         const db = new MockDB(10, 100, genResolution)
         const batcher = new Batch(keys => batchingFunction(keys, db))
         const spyOnDbExecute = sinon.spy(db, '_execute')
@@ -65,7 +65,7 @@ describe('Batch', () => {
         expect(batcher.prevBatch).toEqual(secondBatch)
         expect(spyOnDbExecute.callCount).toBe(2)
     })
-    it('Should cache repeated calls for the same key', () => {
+    test('Should cache repeated calls for the same key', () => {
         const db = new MockDB(10, 100, genResolution)
         const batcher = new Batch(keys => batchingFunction(keys, db))
         const promise1 = batcher.load(1)
@@ -73,7 +73,7 @@ describe('Batch', () => {
         expect(promise1 === promise2).toBe(true)
         db.stopExecution()
     })
-    it('Should cache subsequent calls for the same key', async () => {
+    test('Should cache subsequent calls for the same key', async () => {
         const db = new MockDB(10, 100, genResolution)
         const spyOnDbExecute = sinon.spy(db, '_execute')
         const batcher = new Batch(keys => batchingFunction(keys, db))
@@ -92,7 +92,7 @@ describe('Batch', () => {
         expect(spyOnDbExecute.callCount).toBe(1)
 
     })
-    it('Should work with string keys', async () => {
+    test('Should work with string keys', async () => {
         const customKeys = ['oogabooga', 'fufu', 'lame', 'lol']
         const db = new MockDB(10, 100, genResolution, customKeys)
         const spyOnDbExecute = sinon.spy(db, '_execute')
@@ -106,7 +106,7 @@ describe('Batch', () => {
 })
 describe('Batch utility functions', () => {
     describe('loadMany', () => {
-        it('Should load many keys at once', async () => {
+        test('Should load many keys at once', async () => {
             const db = new MockDB(10, 100, genResolution)
             const spyOnDbExecute = sinon.spy(db, '_execute')
             const batcher = new Batch(keys => batchingFunction(keys, db))
@@ -119,7 +119,7 @@ describe('Batch utility functions', () => {
         })
     })
     describe('clearCache', () => {
-        it('Should clear the cache of existing values', async () => {
+        test('Should clear the cache of existing values', async () => {
             const db = new MockDB(10, 100, genResolution)
             const batcher = new Batch(keys => batchingFunction(keys, db))
             const spyOnDbExecute = sinon.spy(db, '_execute')
@@ -130,7 +130,7 @@ describe('Batch utility functions', () => {
         })
     })
     describe('clearKeys', () => {
-        it('Should clear the cache of specific keys', async () => {
+        test('Should clear the cache of specific keys', async () => {
             const db = new MockDB(10, 100, genResolution)
             const batcher = new Batch(keys => batchingFunction(keys, db))
             const spyOnDbExecute = sinon.spy(db, '_execute')
@@ -145,7 +145,7 @@ describe('Batch utility functions', () => {
         })
     })
     describe('prime', () => {
-        it('Should prime the cache of the batcher', async () => {
+        test('Should prime the cache of the batcher', async () => {
             const db = new MockDB(10, 100, genResolution)
             const batcher = new Batch(keys => batchingFunction(keys, db))
             const spyOnDbExecute = sinon.spy(db, '_execute')
@@ -169,7 +169,7 @@ describe('Batch utility functions', () => {
         })
     })
     describe('reload', () => {
-        it('Should reload keys already loaded before', async () => {
+        test('Should reload keys already loaded before', async () => {
             const db = new MockDB(10, 100, genResolution)
             const batcher = new Batch(keys => batchingFunction(keys, db))
             const spyOnDbExecute = sinon.spy(db, '_execute')
@@ -181,7 +181,7 @@ describe('Batch utility functions', () => {
         })
     })
     describe('reloadMany', () => {
-        it('Should reload many keys', async () => {
+        test('Should reload many keys', async () => {
             const db = new MockDB(10, 100, genResolution)
             const batcher = new Batch(keys => batchingFunction(keys, db))
             const spyOnDbExecute = sinon.spy(db, '_execute')
@@ -196,21 +196,21 @@ describe('Batch utility functions', () => {
     })
 })
 describe('Error handling', () => {
-    it('rejects errors normally', async () => {
+    test('rejects errors normally', async () => {
         const db = new MockDB(10, 100, genResolution).throwsException(true)
         const batcher = new Batch(keys => batchingFunction(keys, db))
         await expect(Promise.all(arrayOfIntegers(3, 6).map(n => batcher.load(n))))
             .rejects
             .toThrow(db.error)
     })
-    it('Throws in try/catch', async () => {
+    test('Throws in try/catch', async () => {
         const db = new MockDB(10, 100, genResolution).throwsException(true)
         const batcher = new Batch(keys => batchingFunction(keys, db))
         await expect(batcher.load(8))
             .rejects
             .toThrow(db.error)
     })
-    it('Should not cache errors', async () => {
+    test('Should not cache errors', async () => {
         const db = new MockDB(10, 100, genResolution).throwsException(true)
         const spyOnDbExecute = sinon.spy(db, '_execute')
         const batcher = new Batch(keys => batchingFunction(keys, db))
@@ -223,7 +223,7 @@ describe('Error handling', () => {
         expect(await batcher.getFromCache(8)).toEqual(genResolution(8))
         expect(spyOnDbExecute.callCount).toBe(2)
     })
-    it('Can load null values', async () => {
+    test('Can load null values', async () => {
         const db = new MockDB(10, 100, genResolution)
         const batcher = new Batch(keys => batchingFunction(keys, db))
         const result = await batcher.load(11)
@@ -231,7 +231,7 @@ describe('Error handling', () => {
     })
 })
 describe('Test batch queueing', () => {
-    it('ongoingJobsEnableQueueing(true) queues async calls while another batch is being processed', async () => {
+    test('ongoingJobsEnableQueueing(true) queues async calls while another batch is being processed', async () => {
 
         const db = new MockDB(10, 100, genResolution)
         const spyOnDbExecute = sinon.spy(db, '_execute')
@@ -269,7 +269,7 @@ describe('Test batch queueing', () => {
         expect(callCount).toBe(3)
         console.log('batch-boy(ongoingJobsEnableQueueing(true)): ', callCount + ' calls')
     })
-    it('dataloader does not queue async calls while another batch is being processed', async () => {
+    test('dataloader does not queue async calls while another batch is being processed', async () => {
         const db = new MockDB(10, 100, genResolution)
         const spyOnDbExecute = sinon.spy(db, '_execute')
         const dataloader = new Dataloader(keys => batchingFunction(keys, db))
@@ -290,7 +290,7 @@ describe('Test batch queueing', () => {
         expect(callCount).toBe(5)
         console.log('dataloader: ', callCount + ' calls')
     })
-    it('ongoinJobsEnableQueueing(false) disables batch queueing for the next job', async () => {
+    test('ongoinJobsEnableQueueing(false) disables batch queueing for the next job', async () => {
         const db = new MockDB(10, 100, genResolution)
         const spyOnDbExecute = sinon.spy(db, '_execute')
         const batch = new Batch(keys => batchingFunction(keys, db)).ongoingJobsEnableQueueing(false)
