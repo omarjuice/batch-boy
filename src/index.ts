@@ -2,7 +2,6 @@
 // <reference path="../types.d.ts" />
 import Deferred from './Deferred';
 
-
 /** @class  */
 type batchingFunc = (keys: (string | number)[]) => Promise<any[]>;
 class BatchInternal {
@@ -66,7 +65,7 @@ class BatchInternal {
     }
 }
 const internal = Symbol('_internal_')
-export class Batch {
+class Batch {
     /**
      * @private operations.
      */
@@ -173,3 +172,7 @@ export class Batch {
         return this
     }
 }
+if (process.env.NODE_ENV === 'build') {
+    module.exports = Batch
+}
+export default Batch

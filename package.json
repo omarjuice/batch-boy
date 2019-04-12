@@ -12,9 +12,9 @@
     "types.d.ts"
   ],
   "scripts": {
-    "test": "mocha -w -r ts-node/register test/index.test.ts --no-timeouts",
+    "test": "export NODE_ENV=test && mocha -w -r ts-node/register test/index.test.ts --no-timeouts",
     "test:watch": "npm run test -- --watch-extensions ts --watch",
-    "build": "tsc --declaration",
+    "build": "export NODE_ENV=build && tsc --declaration",
     "prepare": "npm run build",
     "version": "git add -A src"
   },
