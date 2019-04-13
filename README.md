@@ -163,9 +163,9 @@ Default `true`. If `false`, the batcher will NOT cache calls to the load methods
 ## Patterns
 It is suggested that `Batch` is used on a per request basis, because caching data at an application level can have problematic effects if unmanaged.
 
-_However_, it is possible to use only one instance of each batcher if only the reload functions are used. This would allow for the possibility of using batch-boy for batching data fetching only, and not caching. 
+_However_, it is possible to use only one instance of each batcher if `shouldCache` is set to false or if only the reload functions are used. This would allow for the possibility of using batch-boy for batching data fetching only, and not caching. 
 
-The reload methods were something I thought were missing from the Dataloader API as a direct way to refetch data already the cache. The reload methods are primarily intended for cases in which it is known that data has changed or will change:
+The reload methods were something I thought were missing from the Dataloader API as a direct way to refetch data already in the cache. The reload methods are primarily intended for cases in which it is known that data has changed or will change:
 
 ```javascript
 const user = await batcher.load(1)
@@ -184,7 +184,7 @@ While one batch is being processed, by default, requests for another batch on th
 
 Notice that while another batch is being processed, batcher queues calls to `batcher.load` that occur within the timeframe of the currently executing process, not just during the same event loop. 
 
-This behavior may be sometimes undesired, so control is given to the user with `batcher.ongoingJobsEnableQueuing(boolean)`. By default, this is `true`, resulting the the aforementioned behavior, but calling this method with `false` will result in a similar execution pattern to Dataloader's.
+This behavior may be sometimes undesired, so control is given to the developer with `batcher.xoptions.ongoingJobsEnableQueuing`. By default, this is `true`, resulting in the aforementioned behavior, but calling this method with `false` will result in a similar execution pattern to Dataloader's.
 
 
 Tests run demonstrating this behavior:

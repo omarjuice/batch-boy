@@ -126,7 +126,7 @@ class Batch {
     }
     /**
      * @method 
-     * Accepts a key and returns a Promise for a value.
+     * Accepts a key and returns a `Promise` for a value.
      */
     public load(key: string | number): Promise<any> {
         if (!['string', 'number'].includes(typeof key)) {
@@ -140,7 +140,7 @@ class Batch {
     }
     /**
      * @method 
-     * Accepts an array of keys and returns a Promise for an array of values.
+     * Accepts an array of keys and returns a `Promise` for an array of values.
      */
     public loadMany(keys: (string | number)[]): Promise<any[]> {
         return Promise.all(keys.map(key => this.load(key)))
@@ -173,7 +173,7 @@ class Batch {
     }
     /**
      * @method
-     * Sets the given key value pair in the cache.
+     * Sets the given key value pair in the cache. Returns a `Promise` for the same
      */
     public prime(key: string | number, value: any): Promise<any> {
         this[internal].cache[key] = new Deferred()
@@ -182,21 +182,21 @@ class Batch {
     }
     /**
      * @method
-     * Returns a promise for a value that already exists in the cache
+     * Returns a `Promise` for a value that already exists in the cache
      */
     public getFromCache(key: string | number): Promise<any> | null {
         return this[internal].cache[key] ? this[internal].cache[key].promise : null
     }
     /**
      * @method
-     * Refetches the value for the given key and returns a promise for the new value.
+     * Refetches the value for the given key and returns a `Promise` for the new value.
      */
     public reload(key: string | number): Promise<any> {
         return this.clearKey(key).load(key)
     }
     /**
      * @method
-     * Refeches the values for the given array of keys and returns a promise for an array of values.
+     * Refeches the values for the given array of keys and returns a `Promise` for an array of values.
      */
     public reloadMany(keys: (string | number)[]): Promise<any> {
         return this.clearKeys(keys).loadMany(keys)
