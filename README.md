@@ -130,12 +130,35 @@ Clears a specific key from the batcher. Returns the batcher for method chaining.
 batcher.clearKeys(['oj', 'billy'])
 ```
 Clears multiple keys from the batcher. Returns the batcher for method chaining.
-#### `batcher.ongoingJobsEnableQueueing(bool: boolean = true) : Batch`
+### *Options*
+#### options.ongoingJobsEnableQueueing
 ```javascript
-batcher.ongoingJobsEnableQueueing(false)
+const batcher = new Batch(
+    keys => batchingFunction(keys), 
+    { ongoingJobsEnableQueueing: false }
+    )
 ```
-Calling with false makes it so that the batcher does not wait for the previous job to finish before dispatching the next job.
+Default `true`. Calling with false makes it so that the batcher does not wait for the previous job to finish before dispatching the next job.
 [See below for in-depth explanation.](#a-major-difference-from-dataloader)
+
+#### options.shouldBatch
+```javascript
+const batcher = new Batch(
+    keys => batchingFunction(keys), 
+    { shouldBatch: false }
+    )
+```
+Default `true`. If `false`, the batcher will NOT batch calls to the load methods.
+This will also disable `ongoingJobsEnableQueueing` behavior.
+#### options.shouldBatch
+```javascript
+const batcher = new Batch(
+    keys => batchingFunction(keys), 
+    { shouldCache: false }
+    )
+```
+Default `true`. If `false`, the batcher will NOT cache calls to the load methods.
+
 
 ## Patterns
 It is suggested that `Batch` is used on a per request basis, because caching data at an application level can have problematic effects if unmanaged.
@@ -168,7 +191,7 @@ Tests run demonstrating this behavior:
 
 ```javascript
 describe('Test batch queueing', () => {
-    it('ongoingJobsEnableQueueing(true) queues async calls while another batch is being processed', async () => {
+    test('ongoingJobsEnableQueueing: true queues async calls while another batch is being processed', async () => {
 
         const db = new MockDB(10, 100, genResolution)
         const spyOnDbExecute = sinon.spy(db, '_execute')
@@ -206,7 +229,7 @@ describe('Test batch queueing', () => {
         expect(callCount).toBe(3)
         console.log('batch-boy(ongoingJobsEnableQueueing(true)): ', callCount + ' calls')
     })
-    it('dataloader does not queue async calls while another batch is being processed', async () => {
+    test('dataloader does not queue async calls while another batch is being processed', async () => {
         const db = new MockDB(10, 100, genResolution)
         const spyOnDbExecute = sinon.spy(db, '_execute')
         const dataloader = new Dataloader(keys => batchingFunction(keys, db))
@@ -227,10 +250,10 @@ describe('Test batch queueing', () => {
         expect(callCount).toBe(5)
         console.log('dataloader: ', callCount + ' calls')
     })
-    it('ongoinJobsEnableQueueing(false) disables batch queueing for the next job', async () => {
+    test('ongoinJobsEnableQueueing:false disables batch queueing for the next job', async () => {
         const db = new MockDB(10, 100, genResolution)
         const spyOnDbExecute = sinon.spy(db, '_execute')
-        const batch = new Batch(keys => batchingFunction(keys, db)).ongoingJobsEnableQueueing(false)
+        const batch = new Batch(keys => batchingFunction(keys, db), { ongoingJobsEnableQueueing: false })
 
         const item1 = batch.load(1)
         await timeBuffer(25)
@@ -248,5 +271,4 @@ describe('Test batch queueing', () => {
         expect(callCount).toBe(5)
         console.log('batch-boy(ongoingJobsEnableQueueing(false)): ', callCount + ' calls')
     })
-})
 ```

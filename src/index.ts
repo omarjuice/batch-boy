@@ -4,36 +4,68 @@ import Deferred from './Deferred';
 
 /** @class  */
 type batchingFunc = (keys: (string | number)[]) => Promise<any[]>;
+type Options = {
+    /**
+     * @property
+     * Default `true`. Sets whether the batcher will wait for the
+     * previous batch to finish before dispatching the next batch.
+     * This behavior will not occur when `shouldBatch` is set to `false`
+     * See [docs](https://www.npmjs.com/package/batch-boy#a-major-difference-from-dataloader)
+     */
+    ongoingJobsEnableQueueing?: boolean
+    /**
+     * @property
+     * Default `true`
+     * Whether the batcher will actually batch calls to load methods.
+     */
+    shouldBatch?: boolean
+    /**
+     * @property
+     * Default `true`
+     * Whether the batcher will cache memoize load method results
+     */
+    shouldCache?: boolean
+}
+const defaultOptions: Options = {
+    ongoingJobsEnableQueueing: true,
+    shouldBatch: true,
+    shouldCache: true
+}
 class BatchInternal {
     public func: batchingFunc
     public cache: {
-        [key: string]: {
-            resolve: (resolution: any) => any
-            reject: (rejection: Error) => any
-            promise: Promise<any>
-        }
+        [key: string]: Deferred
     }
     public queue: string[] | number[]
-    public ongoingJobsEnableQueueing: boolean
     public isQueueing: boolean
     public previousBatch: (string | number)[]
-    constructor(batchingFunc: batchingFunc, prevBatch) {
+    private ongoingJobsEnableQueueing: boolean
+    private shouldBatch: boolean
+    private shouldCache: boolean
+    constructor(
+        batchingFunc: batchingFunc,
+        prevBatch,
+        { ongoingJobsEnableQueueing = true,
+            shouldBatch = true,
+            shouldCache = true }) {
         this.func = batchingFunc
         this.previousBatch = prevBatch
         this.cache = {}
         this.queue = []
         this.isQueueing = false
-        this.ongoingJobsEnableQueueing = true
+        this.ongoingJobsEnableQueueing = ongoingJobsEnableQueueing
+        this.shouldBatch = shouldBatch
+        this.shouldCache = shouldCache
     }
     public addToQueue(key) {
         this.queue.push(key)
-        if (!this.isQueueing) {
+        if (!this.isQueueing || !this.shouldBatch) {
             this.dispatch()
             this.isQueueing = true
         }
     }
     public dispatch() {
-        process.nextTick(eval(`
+        const dispatchFunc = eval(`
         ${this.ongoingJobsEnableQueueing ? 'async' : ''} () => {
             const keys = [...this.queue]
             this.queue = []
@@ -43,13 +75,14 @@ class BatchInternal {
                         const key = keys[i]
                         const value = values[i]
                         this.cache[key].resolve(value)
+                        if(!this.shouldCache) this.cache[key] = null
                     }
                     this.previousBatch.splice(0, this.previousBatch.length, ...keys)
                 })
                 .catch(e => {
-                    for (let key of keys) {
+                    for (const key of keys) {
                         this.cache[key].reject(e)
-                        this.cache[key] = undefined
+                        this.cache[key] = null
                     }
                     return null
                 })
@@ -58,7 +91,8 @@ class BatchInternal {
             } else {
                 this.isQueueing = false
             }
-        }`))
+        }`)
+        this.shouldBatch ? process.nextTick(dispatchFunc) : dispatchFunc()
     }
 }
 
@@ -75,13 +109,20 @@ class Batch {
     public prevBatch: any[]
     /**
      * @param batchingFunc takes an array of keys and resolves to a `Promise` for an array of values
+     * @param options batcher options: 
+     * `{ ongoingJobsEnableQueueing,`
+     * ` shouldBatch,`
+     * ` shouldCache }`
      */
-    constructor(batchingFunc: batchingFunc) {
+    constructor(
+        batchingFunc: batchingFunc,
+        options: Options = defaultOptions
+    ) {
         if (typeof batchingFunc !== 'function') {
             throw new TypeError(`batchingFunc must be a function. Recieved ${batchingFunc}`)
         }
         this.prevBatch = []
-        this[internal] = new BatchInternal(batchingFunc, this.prevBatch)
+        this[internal] = new BatchInternal(batchingFunc, this.prevBatch, options)
     }
     /**
      * @method 
@@ -117,7 +158,7 @@ class Batch {
      * Clear a specific key from the cache.
      */
     public clearKey(key: string | number) {
-        this[internal].cache[key] = undefined
+        this[internal].cache[key] = null
         return this
     }
     /**
@@ -126,7 +167,7 @@ class Batch {
      */
     public clearKeys(keys: (string | number)[]): Batch {
         for (let key of keys) {
-            this[internal].cache[key] = undefined
+            this[internal].cache[key] = null
         }
         return this
     }
@@ -159,16 +200,6 @@ class Batch {
      */
     public reloadMany(keys: (string | number)[]): Promise<any> {
         return this.clearKeys(keys).loadMany(keys)
-    }
-    /**
-     * @method
-     * Default true. Sets whether the batcher will wait for the
-     * previous batch to finish before dispatching the next batch.
-     * See [docs](https://www.npmjs.com/package/batch-boy#a-major-difference-from-dataloader)
-     */
-    public ongoingJobsEnableQueueing(bool: boolean = true): Batch {
-        this[internal].ongoingJobsEnableQueueing = bool
-        return this
     }
 }
 if (process.env.NODE_ENV === 'build') {

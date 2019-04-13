@@ -231,7 +231,7 @@ describe('Error handling', () => {
     })
 })
 describe('Test batch queueing', () => {
-    test('ongoingJobsEnableQueueing(true) queues async calls while another batch is being processed', async () => {
+    test('ongoingJobsEnableQueueing: true queues async calls while another batch is being processed', async () => {
 
         const db = new MockDB(10, 100, genResolution)
         const spyOnDbExecute = sinon.spy(db, '_execute')
@@ -267,7 +267,7 @@ describe('Test batch queueing', () => {
         //results in 3 total calls
         const { callCount } = spyOnDbExecute
         expect(callCount).toBe(3)
-        console.log('batch-boy(ongoingJobsEnableQueueing(true)): ', callCount + ' calls')
+        console.log('batch-boy(ongoingJobsEnableQueueing:true): ', callCount + ' calls')
     })
     test('dataloader does not queue async calls while another batch is being processed', async () => {
         const db = new MockDB(10, 100, genResolution)
@@ -290,10 +290,10 @@ describe('Test batch queueing', () => {
         expect(callCount).toBe(5)
         console.log('dataloader: ', callCount + ' calls')
     })
-    test('ongoinJobsEnableQueueing(false) disables batch queueing for the next job', async () => {
+    test('ongoingJobsEnableQueueing:false disables batch queueing for the next job', async () => {
         const db = new MockDB(10, 100, genResolution)
         const spyOnDbExecute = sinon.spy(db, '_execute')
-        const batch = new Batch(keys => batchingFunction(keys, db)).ongoingJobsEnableQueueing(false)
+        const batch = new Batch(keys => batchingFunction(keys, db), { ongoingJobsEnableQueueing: false })
 
         const item1 = batch.load(1)
         await timeBuffer(25)
@@ -309,7 +309,62 @@ describe('Test batch queueing', () => {
         //results in 5 total calls, like Dataloader
         const { callCount } = spyOnDbExecute
         expect(callCount).toBe(5)
-        console.log('batch-boy(ongoingJobsEnableQueueing(false)): ', callCount + ' calls')
+        console.log('batch-boy(ongoingJobsEnableQueueing:false): ', callCount + ' calls')
+    })
+})
+describe('Options', () => {
+    describe('shouldBatch:false', () => {
+        test('Should disable batching, and still cache', async () => {
+            const db = new MockDB(10, 100, genResolution)
+            const spyOnDbExecute = sinon.spy(db, '_execute')
+            const batcher = new Batch(keys => batchingFunction(keys, db), { shouldBatch: false })
+            const results = await Promise.all([
+                batcher.load(1),
+                batcher.load(2),
+                batcher.load(3),
+                batcher.load(4),
+            ])
+            await batcher.load(1)
+            await batcher.load(2)
+            for (let item of results) {
+                expect(item).toMatchObject(Resolution)
+            }
+            expect(spyOnDbExecute.callCount).toBe(4)
+
+        })
+    })
+    describe('shouldCache:false', () => {
+        test('Should not cache, should still batch', async () => {
+            const db = new MockDB(10, 100, genResolution)
+            const spyOnDbExecute = sinon.spy(db, '_execute')
+            const batcher = new Batch(keys => batchingFunction(keys, db), { shouldCache: false })
+            const results = await batcher.loadMany([1, 2])
+            for (let item of results) {
+                expect(item).toMatchObject(Resolution)
+            }
+            expect(spyOnDbExecute.callCount).toBe(1)
+            await batcher.loadMany([1, 2])
+            expect(spyOnDbExecute.callCount).toBe(2)
+        })
+    })
+    describe('shouldCache:false && shouldBatch:false', () => {
+        test('Should not cache nor batch', async () => {
+            const db = new MockDB(10, 100, genResolution)
+            const spyOnDbExecute = sinon.spy(db, '_execute')
+            const batcher = new Batch(keys => batchingFunction(keys, db), { shouldBatch: false, shouldCache: false })
+            const results = await Promise.all([
+                batcher.load(1),
+                batcher.load(2),
+                batcher.load(3),
+                batcher.load(4),
+            ])
+            await batcher.load(1)
+            await batcher.load(2)
+            for (let item of results) {
+                expect(item).toMatchObject(Resolution)
+            }
+            expect(spyOnDbExecute.callCount).toBe(6)
+        })
     })
 })
 
