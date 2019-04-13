@@ -1,5 +1,4 @@
-import { IDeferred } from '../types';
-export default class Deferred implements IDeferred {
+export default class Deferred {
 	resolve: (resolution: any) => any
 	reject: (rejection: Error) => any
 	promise: Promise<any>

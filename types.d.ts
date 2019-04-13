@@ -1,12 +1,6 @@
 export declare type BatchingFunction = (keys: any[]) => Promise<any[]>
-export declare interface IDeferred {
-    resolve: (resolution: any) => any
-    reject: (rejection: Error) => any
-    promise: Promise<any>
-}
-export declare type Cache = {
-    [key: string]: IDeferred
-}
+
+
 export declare type key = string | number
 
 export declare class Batch {

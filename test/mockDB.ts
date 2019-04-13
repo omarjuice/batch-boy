@@ -1,5 +1,5 @@
 import Deferred from '../src/Deferred';
-import { IDeferred, key } from '../types';
+import { key } from '../types';
 
 export default class MockDB {
     private _entries: any[]
@@ -22,7 +22,7 @@ export default class MockDB {
         }
     }
     public query(keys: key[]): Promise<any[]> {
-        const deferred: IDeferred = new Deferred();
+        const deferred = new Deferred();
         this._queries.push(() => {
             if (this._willThrow) {
                 try {

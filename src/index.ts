@@ -1,38 +1,38 @@
 // <reference path="./index.d.ts" />
 // <reference path="../types.d.ts" />
 import Deferred from './Deferred';
-
-/** @class  */
-type batchingFunc = (keys: (string | number)[]) => Promise<any[]>;
-type Options = {
-    /**
-     * @property
-     * Default `true`. Sets whether the batcher will wait for the
-     * previous batch to finish before dispatching the next batch.
-     * This behavior will not occur when `shouldBatch` is set to `false`
-     * See [docs](https://www.npmjs.com/package/batch-boy#a-major-difference-from-dataloader)
-     */
-    ongoingJobsEnableQueueing?: boolean
-    /**
-     * @property
-     * Default `true`
-     * Whether the batcher will actually batch calls to load methods.
-     */
-    shouldBatch?: boolean
-    /**
-     * @property
-     * Default `true`
-     * Whether the batcher will cache memoize load method results
-     */
-    shouldCache?: boolean
+declare namespace Batch {
+    type batchingFunc = (keys: (string | number)[]) => Promise<any[]>;
+    type Options = {
+        /**
+         * @property
+         * Default `true`. Sets whether the batcher will wait for the
+         * previous batch to finish before dispatching the next batch.
+         * This behavior will not occur when `shouldBatch` is set to `false`
+         * See [docs](https://www.npmjs.com/package/batch-boy#a-major-difference-from-dataloader)
+         */
+        ongoingJobsEnableQueueing?: boolean
+        /**
+         * @property
+         * Default `true`
+         * Whether the batcher will actually batch calls to load methods.
+         */
+        shouldBatch?: boolean
+        /**
+         * @property
+         * Default `true`
+         * Whether the batcher will cache memoize load method results
+         */
+        shouldCache?: boolean
+    }
 }
-const defaultOptions: Options = {
+const defaultOptions: Batch.Options = {
     ongoingJobsEnableQueueing: true,
     shouldBatch: true,
     shouldCache: true
 }
 class BatchInternal {
-    public func: batchingFunc
+    public func: Batch.batchingFunc
     public cache: {
         [key: string]: Deferred
     }
@@ -43,7 +43,7 @@ class BatchInternal {
     private shouldBatch: boolean
     private shouldCache: boolean
     constructor(
-        batchingFunc: batchingFunc,
+        batchingFunc: Batch.batchingFunc,
         prevBatch,
         { ongoingJobsEnableQueueing = true,
             shouldBatch = true,
@@ -97,7 +97,6 @@ class BatchInternal {
 }
 
 const internal = Symbol('_internal_')
-
 class Batch {
     /**
      * @private operations.
@@ -115,8 +114,8 @@ class Batch {
      * ` shouldCache }`
      */
     constructor(
-        batchingFunc: batchingFunc,
-        options: Options = defaultOptions
+        batchingFunc: Batch.batchingFunc,
+        options: Batch.Options = defaultOptions
     ) {
         if (typeof batchingFunc !== 'function') {
             throw new TypeError(`batchingFunc must be a function. Recieved ${batchingFunc}`)
@@ -202,4 +201,5 @@ class Batch {
         return this.clearKeys(keys).loadMany(keys)
     }
 }
-module.exports = Batch
+// module.exports = Batch
+export = Batch
