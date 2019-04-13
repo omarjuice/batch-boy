@@ -3,7 +3,7 @@ import * as sinon from 'sinon'
 import * as Dataloader from 'dataloader'
 import MockDB from './mockDB';
 import { genResolution, arrayOfIntegers, timeBuffer } from './utils';
-import Batch from '../src/index';
+const Batch = require('../src/index');
 const Resolution = {
     key: expect.any(Number),
     resolution: expect.any(String)

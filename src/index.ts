@@ -202,7 +202,4 @@ class Batch {
         return this.clearKeys(keys).loadMany(keys)
     }
 }
-if (process.env.NODE_ENV === 'build') {
-    module.exports = Batch
-}
-export default Batch
+module.exports = Batch
