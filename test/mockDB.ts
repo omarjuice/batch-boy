@@ -1,5 +1,4 @@
-import Deferred from '../src/Deferred';
-import { key } from '../types';
+import Deferred from './Deferred';
 
 export default class MockDB {
     private _entries: any[]
@@ -21,7 +20,7 @@ export default class MockDB {
             this._entries.push(resolutionGenerator(customKeys[i] || i + 1))
         }
     }
-    public query(keys: key[]): Promise<any[]> {
+    public query(keys): Promise<any[]> {
         const deferred = new Deferred();
         this._queries.push(() => {
             if (this._willThrow) {
@@ -37,13 +36,13 @@ export default class MockDB {
         if (!this._executing) this._execute();
         return deferred.promise
     }
-    private _find(key: key) {
+    private _find(key) {
         for (let entry of this._entries) {
             if (entry.key === key) return entry
         }
         return null
     }
-    private _findThatThrows(key: key) {
+    private _findThatThrows(key) {
         throw this.error
     }
     public _execute() {

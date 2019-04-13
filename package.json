@@ -1,14 +1,12 @@
 {
   "name": "batch-boy",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "A data loading utility for batching and caching asynchronous actions",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist/index.js",
-    "dist/Deffered.js",
-    "dist/index.d.ts",
-    "types.d.ts"
+    "dist/index.d.ts"
   ],
   "scripts": {
     "test": "jest",

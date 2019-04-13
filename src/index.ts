@@ -1,7 +1,6 @@
 // <reference path="./index.d.ts" />
-// <reference path="../types.d.ts" />
-import Deferred from './Deferred';
-declare namespace Batch {
+
+declare namespace Batcher {
     type batchingFunc = (keys: (string | number)[]) => Promise<any[]>;
     type Options = {
         /**
@@ -26,13 +25,13 @@ declare namespace Batch {
         shouldCache?: boolean
     }
 }
-const defaultOptions: Batch.Options = {
+const defaultOptions: Batcher.Options = {
     ongoingJobsEnableQueueing: true,
     shouldBatch: true,
     shouldCache: true
 }
 class BatchInternal {
-    public func: Batch.batchingFunc
+    public func: Batcher.batchingFunc
     public cache: {
         [key: string]: Deferred
     }
@@ -43,7 +42,7 @@ class BatchInternal {
     private shouldBatch: boolean
     private shouldCache: boolean
     constructor(
-        batchingFunc: Batch.batchingFunc,
+        batchingFunc: Batcher.batchingFunc,
         prevBatch,
         { ongoingJobsEnableQueueing = true,
             shouldBatch = true,
@@ -97,7 +96,7 @@ class BatchInternal {
 }
 
 const internal = Symbol('_internal_')
-class Batch {
+class Batcher {
     /**
      * @private operations.
      */
@@ -114,8 +113,8 @@ class Batch {
      * ` shouldCache }`
      */
     constructor(
-        batchingFunc: Batch.batchingFunc,
-        options: Batch.Options = defaultOptions
+        batchingFunc: Batcher.batchingFunc,
+        options: Batcher.Options = defaultOptions
     ) {
         if (typeof batchingFunc !== 'function') {
             throw new TypeError(`batchingFunc must be a function. Recieved ${batchingFunc}`)
@@ -164,7 +163,7 @@ class Batch {
      * @method
      * Clear many keys from the cache.
      */
-    public clearKeys(keys: (string | number)[]): Batch {
+    public clearKeys(keys: (string | number)[]): Batcher {
         for (let key of keys) {
             this[internal].cache[key] = null
         }
@@ -201,5 +200,15 @@ class Batch {
         return this.clearKeys(keys).loadMany(keys)
     }
 }
-// module.exports = Batch
-export = Batch
+class Deferred {
+    resolve: (resolution: any) => any
+    reject: (rejection: Error) => any
+    promise: Promise<any>
+    constructor() {
+        this.promise = new Promise((resolve, reject) => {
+            this.resolve = resolve
+            this.reject = reject
+        })
+    }
+}
+export = Batcher
