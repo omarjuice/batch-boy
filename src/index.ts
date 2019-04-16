@@ -32,6 +32,7 @@ const defaultOptions: Batcher.Options = {
 }
 class BatchInternal {
     public func: Batcher.batchingFunc
+    private dispatchFunc: () => void
     public cache: {
         [key: string]: Deferred
     }
@@ -55,16 +56,7 @@ class BatchInternal {
         this.ongoingJobsEnableQueueing = ongoingJobsEnableQueueing
         this.shouldBatch = shouldBatch
         this.shouldCache = shouldCache
-    }
-    public addToQueue(key) {
-        this.queue.push(key)
-        if (!this.isQueueing || !this.shouldBatch) {
-            this.dispatch()
-            this.isQueueing = true
-        }
-    }
-    public dispatch() {
-        const dispatchFunc = eval(`
+        this.dispatchFunc = eval(`
         ${this.ongoingJobsEnableQueueing ? 'async' : ''} () => {
             const keys = [...this.queue]
             this.queue = []
@@ -91,7 +83,18 @@ class BatchInternal {
                 this.isQueueing = false
             }
         }`)
-        this.shouldBatch ? process.nextTick(dispatchFunc) : dispatchFunc()
+    }
+    public addToQueue(key) {
+        this.queue.push(key)
+        if (!this.isQueueing || !this.shouldBatch) {
+            this.dispatch()
+            this.isQueueing = true
+        }
+    }
+    public dispatch() {
+        if (!this.shouldBatch) return this.dispatchFunc();
+        const nextTick = typeof process === 'object' ? process.nextTick : setImmediate || setTimeout
+        nextTick(this.dispatchFunc)
     }
 }
 
