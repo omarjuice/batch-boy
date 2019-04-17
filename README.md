@@ -150,7 +150,7 @@ const batcher = new Batcher(
 ```
 Default `true`. If `false`, the batcher will NOT batch calls to the load methods.
 This will also disable `ongoingJobsEnableQueueing` behavior.
-#### options.shouldBatch
+#### options.shouldCache
 ```javascript
 const batcher = new Batcher(
     keys => batchingFunction(keys), 
